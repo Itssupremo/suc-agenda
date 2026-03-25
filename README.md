@@ -1,6 +1,6 @@
-# SUC Directory Management System
+# e-Agenda System
 
-MERN Stack application for managing a directory of State Universities and Colleges (SUCs) under CHED.
+MERN Stack application for managing the e-Agenda of State Universities and Colleges (SUCs) under CHED.
 
 ## Quick Start
 

@@ -15,7 +15,7 @@ function Header({ user, onLogout }) {
             {!user && <Link className={isActive('/')} to="/">HOME</Link>}
             {user && user.role === 'admin' && (
               <>
-                <Link className={isActive('/admin')} to="/admin">SUC DIRECTORY</Link>
+                <Link className={isActive('/admin')} to="/admin">e-AGENDA</Link>
                 <Link className={isActive('/admin/users')} to="/admin/users">USER MANAGEMENT</Link>
               </>
             )}
@@ -56,7 +56,7 @@ function Header({ user, onLogout }) {
           {!user && <Link className="mobile-nav-link" to="/">HOME</Link>}
           {user && user.role === 'admin' && (
             <>
-              <Link className="mobile-nav-link" to="/admin">SUC DIRECTORY</Link>
+              <Link className="mobile-nav-link" to="/admin">e-AGENDA</Link>
               <Link className="mobile-nav-link" to="/admin/users">USER MANAGEMENT</Link>
             </>
           )}

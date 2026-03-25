@@ -11,9 +11,9 @@ function Footer() {
         </div>
 
         {/* Title */}
-        <h5 className="footer-title">SUC Directory Management System</h5>
+        <h5 className="footer-title">e-Agenda System</h5>
         <p className="footer-desc">
-          Commission on Higher Education — Official SUC Directory for managing
+          Commission on Higher Education — Official e-Agenda for managing <br></br>
           State Universities and Colleges information.
         </p>
 
@@ -22,15 +22,6 @@ function Footer() {
           <span className="footer-tag">Official</span>
           <span className="footer-tag">Transparent</span>
           <span className="footer-tag">Service-Oriented</span>
-        </div>
-
-        {/* Quick Links */}
-        <div className="footer-quick">
-          <h6>QUICK LINKS</h6>
-          <div className="d-flex justify-content-center gap-4">
-            <Link to="/">Public Directory</Link>
-            <Link to="/login">Login</Link>
-          </div>
         </div>
 
         <hr className="footer-divider" />

@@ -16,7 +16,7 @@ app.use(
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://suc-directory.vercel.app",
+        "https://e-agenda.vercel.app",
       ];
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
@@ -43,7 +43,7 @@ app.use('/api/sucs', sucRoutes);
 app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'SUC Directory API is running' });
+  res.json({ message: 'e-Agenda System API is running' });
 });
 
 // Connect to MongoDB

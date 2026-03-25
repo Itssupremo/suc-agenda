@@ -5,7 +5,7 @@ function Navbar({ user, onLogout }) {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">
-          SUC Directory
+          e-Agenda System
         </Link>
         <button
           className="navbar-toggler"

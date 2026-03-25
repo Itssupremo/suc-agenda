@@ -6,7 +6,7 @@ const User = require('./models/User');
 const Suc = require('./models/Suc');
 
 const users = [
-  { username: 'admin', password: 'admin123', fullname: 'System Admin', role: 'admin', occCode: '' },
+  { username: 'Admin', password: 'IanGwapo', fullname: 'System Admin', role: 'admin', occCode: '' },
   { username: 'ocsca', password: 'ocsca123', fullname: 'Chairperson Shirley C. Agrupis', role: 'user', occCode: 'OCSCA' },
   { username: 'ocdra', password: 'ocdra123', fullname: 'Commissioner Desiderio R. Apag III', role: 'user', occCode: 'OCDRA' },
   { username: 'ocrpa', password: 'ocrpa123', fullname: 'Commissioner Ricmar P. Aquino', role: 'user', occCode: 'OCRPA' },
@@ -85,12 +85,7 @@ async function seed() {
     await Suc.insertMany(sucs);
 
     console.log(`Seed data inserted successfully! (${sucs.length} SUCs from XLSX)`);
-    console.log('Admin  => username: admin, password: admin123');
-    console.log('OCSCA  => username: ocsca, password: ocsca123');
-    console.log('OCDRA  => username: ocdra, password: ocdra123');
-    console.log('OCRPA  => username: ocrpa, password: ocrpa123');
-    console.log('OCMQM  => username: ocmqm, password: ocmqm123');
-    console.log('OCMAO  => username: ocmao, password: ocmao123');
+    users.forEach(u => console.log(`${u.role === 'admin' ? 'Admin' : u.occCode}  => username: ${u.username}, password: ${u.password}`));
     process.exit(0);
   } catch (err) {
     console.error('Seeding error:', err.message);

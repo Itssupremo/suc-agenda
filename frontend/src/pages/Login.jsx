@@ -28,7 +28,7 @@ function Login({ onLogin }) {
         <div className="text-center mb-4">
           <img src="/ched-logo.png" alt="CHED" style={{ height: 80 }} />
           <h4 className="mt-3 fw-bold" style={{ color: 'var(--ched-navy)' }}>Welcome Back</h4>
-          <p className="text-muted small">Sign in to SUC Directory Management System</p>
+          <p className="text-muted small">Sign in to e-Agenda System</p>
         </div>
 
         <div className="card shadow" style={{ border: 'none', borderRadius: 12, overflow: 'hidden' }}>

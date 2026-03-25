@@ -1,7 +1,7 @@
 {
-  "name": "suc-directory-backend",
+  "name": "e-agenda-backend",
   "version": "1.0.0",
-  "description": "SUC Directory Management System - Backend",
+  "description": "e-Agenda System - Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
