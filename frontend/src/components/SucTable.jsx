@@ -1,15 +1,25 @@
 import { useState, useRef } from 'react';
 
+const formatDate = (val) => {
+  if (!val) return '—';
+  const parts = val.split('-');
+  if (parts.length === 3) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = parseInt(parts[1], 10) - 1;
+    if (m >= 0 && m < 12) {
+      return `${months[m]} ${parseInt(parts[2], 10)}, ${parts[0]}`;
+    }
+  }
+  return val;
+};
+
 const ALL_COLUMNS = [
   { key: 'region', label: 'Region' },
   { key: 'sucName', label: 'SUC Name' },
   { key: 'president', label: 'President' },
-  { key: 'email', label: 'Email' },
-  { key: 'contact', label: 'Contact' },
   { key: 'boardSecretaryName', label: 'Board Secretary' },
   { key: 'boardSecretaryEmail', label: 'Board Sec Email' },
-  { key: 'boardSecretaryContact', label: 'Board Sec Contact' },
-  { key: 'chedOfficial', label: 'CHED Official' },
+  { key: 'dateOfBoardMeeting', label: 'Date of Board Meeting' },
 ];
 
 function SucTable({ sucs, onEdit, onDelete, onTransfer, showActions = false, isAdmin = false, search, onSearchChange, officialFilter, onOfficialFilterChange, officials }) {
@@ -126,12 +136,9 @@ function SucTable({ sucs, onEdit, onDelete, onTransfer, showActions = false, isA
               <th>President</th>
               {showActions && (
                 <>
-                  <th>Email</th>
-                  <th>Contact</th>
-                  <th>Board Secretary</th>
+                  <th>Board Sec Name</th>
                   <th>Board Sec Email</th>
-                  <th>Board Sec Contact</th>
-                  <th>CHED Official</th>
+                  <th>Date of Board Meeting</th>
                   <th>Actions</th>
                 </>
               )}
@@ -140,7 +147,7 @@ function SucTable({ sucs, onEdit, onDelete, onTransfer, showActions = false, isA
           <tbody>
             {sucs.length === 0 ? (
               <tr>
-                <td colSpan={showActions ? 11 : 4} className="text-center text-muted">
+                  <td colSpan={showActions ? 8 : 4} className="text-center text-muted">
                   No records found
                 </td>
               </tr>
@@ -157,12 +164,9 @@ function SucTable({ sucs, onEdit, onDelete, onTransfer, showActions = false, isA
                   <td>{suc.president}</td>
                   {showActions && (
                     <>
-                      <td className="small">{suc.email}</td>
-                      <td className="small">{suc.contact}</td>
                       <td className="small">{suc.boardSecretaryName}</td>
                       <td className="small">{suc.boardSecretaryEmail}</td>
-                      <td className="small">{suc.boardSecretaryContact}</td>
-                      <td className="small">{suc.chedOfficial}</td>
+                      <td className="small">{formatDate(suc.dateOfBoardMeeting)}</td>
                       <td>
                         <div className="d-flex gap-1">
                           {onEdit && (

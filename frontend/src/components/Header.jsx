@@ -1,8 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 
 function Header({ user, onLogout }) {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'nav-link active' : 'nav-link';
+  const isActiveDropdown = (paths) => paths.some((p) => location.pathname === p) ? 'nav-link dropdown-toggle active' : 'nav-link dropdown-toggle';
+  const [agendaOpen, setAgendaOpen] = useState(false);
+  const [mobileAgendaOpen, setMobileAgendaOpen] = useState(false);
+
+  const agendaPaths = ['/admin/regular-board', '/admin/minutes', '/admin/special-board'];
 
   return (
     <header className="ocdra-header">
@@ -15,7 +21,36 @@ function Header({ user, onLogout }) {
             {!user && <Link className={isActive('/')} to="/">HOME</Link>}
             {user && user.role === 'admin' && (
               <>
-                <Link className={isActive('/admin')} to="/admin">e-AGENDA</Link>
+                <Link className={isActive('/admin')} to="/admin">DASHBOARD</Link>
+                {/* e-AGENDA dropdown */}
+                <div className={`dropdown${agendaOpen ? ' show' : ''}`}>
+                  <button
+                    className={isActiveDropdown(agendaPaths)}
+                    onClick={() => setAgendaOpen((o) => !o)}
+                    onBlur={() => setTimeout(() => setAgendaOpen(false), 150)}
+                    type="button"
+                  >
+                    e-AGENDA
+                  </button>
+                  <ul className={`dropdown-menu${agendaOpen ? ' show' : ''}`}>
+                    <li>
+                      <Link className="dropdown-item" to="/admin/regular-board" onClick={() => setAgendaOpen(false)}>
+                        Regular Board Meeting
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" to="/admin/minutes" onClick={() => setAgendaOpen(false)}>
+                        Minutes of the Meeting
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" to="/admin/special-board" onClick={() => setAgendaOpen(false)}>
+                        Special Board Meeting
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <Link className={isActive('/admin/analytics')} to="/admin/analytics">ANALYTICS</Link>
                 <Link className={isActive('/admin/users')} to="/admin/users">USER MANAGEMENT</Link>
               </>
             )}
@@ -56,7 +91,30 @@ function Header({ user, onLogout }) {
           {!user && <Link className="mobile-nav-link" to="/">HOME</Link>}
           {user && user.role === 'admin' && (
             <>
-              <Link className="mobile-nav-link" to="/admin">e-AGENDA</Link>
+              <Link className="mobile-nav-link" to="/admin">DASHBOARD</Link>
+              {/* e-AGENDA collapsible section */}
+              <button
+                className="mobile-nav-link mobile-nav-collapse-btn w-100 text-start border-0 bg-transparent d-flex justify-content-between align-items-center"
+                onClick={() => setMobileAgendaOpen((o) => !o)}
+                type="button"
+              >
+                <span>e-AGENDA</span>
+                <i className={`bi bi-chevron-${mobileAgendaOpen ? 'up' : 'down'} ms-1`}></i>
+              </button>
+              {mobileAgendaOpen && (
+                <div className="mobile-nav-sub">
+                  <Link className="mobile-nav-link mobile-nav-sublink" to="/admin/regular-board">
+                    Regular Board Meeting
+                  </Link>
+                  <Link className="mobile-nav-link mobile-nav-sublink" to="/admin/minutes">
+                    Minutes of the Meeting
+                  </Link>
+                  <Link className="mobile-nav-link mobile-nav-sublink" to="/admin/special-board">
+                    Special Board Meeting
+                  </Link>
+                </div>
+              )}
+              <Link className="mobile-nav-link" to="/admin/analytics">ANALYTICS</Link>
               <Link className="mobile-nav-link" to="/admin/users">USER MANAGEMENT</Link>
             </>
           )}

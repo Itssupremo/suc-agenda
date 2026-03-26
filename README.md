@@ -1,6 +1,7 @@
 # e-Agenda System
 
-MERN Stack application for managing the e-Agenda of State Universities and Colleges (SUCs) under CHED.
+--Contact Ian Christopher N. Mangubat
+--www.facebook.com/supremo.ian.7
 
 ## Quick Start
 

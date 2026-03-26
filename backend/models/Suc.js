@@ -11,6 +11,7 @@ const sucSchema = new mongoose.Schema({
   boardSecretaryName: { type: String, trim: true, default: '' },
   boardSecretaryEmail: { type: String, trim: true, default: '' },
   boardSecretaryContact: { type: String, trim: true, default: '' },
+  dateOfBoardMeeting: { type: String, trim: true, default: '' },
   chedOfficial: { type: String, trim: true, default: '' },
   occCode: { type: String, trim: true, default: '' },
   section: {

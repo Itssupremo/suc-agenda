@@ -10,12 +10,25 @@ const OCC_OPTIONS = [
   { code: 'OCMAO', label: 'OCMAO — Commissioner Michelle Aguilar-Ong' },
 ];
 
-function UserManagement() {
+const ROLE_META = {
+  superadmin: { badge: 'bg-danger',   icon: 'bi-shield-lock-fill',  label: 'Super Admin' },
+  admin:      { badge: 'bg-primary',  icon: 'bi-shield-check',      label: 'Commissioner' },
+  chairperson:{ badge: 'bg-purple',   icon: 'bi-shield-check',      label: 'Chairperson' },
+  user:       { badge: 'bg-success',  icon: 'bi-person',            label: 'SUC User' },
+};
+
+function getRoleMeta(u) {
+  if (u.role === 'admin' && u.occCode === 'OCSCA') return { ...ROLE_META.admin, label: 'Chairperson' };
+  return ROLE_META[u.role] || ROLE_META.user;
+}
+
+function UserManagement({ user: currentUser }) {
+  const isSuperAdmin = currentUser?.role === 'superadmin';
   const [users, setUsers] = useState([]);
   const [alert, setAlert] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ fullname: '', username: '', password: '', role: 'user', occCode: '' });
+  const [form, setForm] = useState({ fullname: '', email: '', username: '', password: '', role: 'user', occCode: '', sucAbbreviation: '' });
   const [search, setSearch] = useState('');
 
   const fetchUsers = async () => {
@@ -36,13 +49,21 @@ function UserManagement() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ fullname: '', username: '', password: '', role: 'user', occCode: '' });
+    setForm({ fullname: '', email: '', username: '', password: '', role: 'user', occCode: '', sucAbbreviation: '' });
     setShowModal(true);
   };
 
   const openEdit = (user) => {
     setEditing(user);
-    setForm({ fullname: user.fullname, username: user.username, password: '', role: user.role, occCode: user.occCode || '' });
+    setForm({
+      fullname: user.fullname,
+      email: user.email || '',
+      username: user.username,
+      password: '',
+      role: user.role,
+      occCode: user.occCode || '',
+      sucAbbreviation: user.sucAbbreviation || '',
+    });
     setShowModal(true);
   };
 
@@ -50,12 +71,23 @@ function UserManagement() {
     e.preventDefault();
     try {
       if (editing) {
-        const data = { fullname: form.fullname, username: form.username, role: form.role, occCode: form.occCode };
+        const data = {
+          fullname: form.fullname,
+          email: form.email,
+          username: form.username,
+          role: form.role,
+          occCode: form.role === 'admin' ? form.occCode : '',
+          sucAbbreviation: form.role === 'user' ? form.sucAbbreviation : '',
+        };
         if (form.password) data.password = form.password;
         await updateUser(editing._id, data);
         showAlert('success', 'User updated successfully');
       } else {
-        await createUser(form);
+        await createUser({
+          ...form,
+          occCode: form.role === 'admin' ? form.occCode : '',
+          sucAbbreviation: form.role === 'user' ? form.sucAbbreviation : '',
+        });
         showAlert('success', 'User created successfully');
       }
       setShowModal(false);
@@ -78,7 +110,9 @@ function UserManagement() {
 
   const filtered = users.filter((u) => {
     const q = search.toLowerCase();
-    return !q || u.fullname.toLowerCase().includes(q) || u.username.toLowerCase().includes(q) || (u.occCode || '').toLowerCase().includes(q);
+    return !q || u.fullname.toLowerCase().includes(q) || u.username.toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) || (u.occCode || '').toLowerCase().includes(q) ||
+      (u.sucAbbreviation || '').toLowerCase().includes(q);
   });
 
   return (
@@ -110,33 +144,37 @@ function UserManagement() {
             <table className="table table-bordered table-striped table-hover align-middle mb-0">
               <thead className="table-primary">
                 <tr>
-                  <th style={{ width: 50 }}>#</th>
+                  <th style={{ width: 40 }}>#</th>
                   <th>Full Name</th>
+                  <th>Email</th>
                   <th>Username</th>
                   <th>Role</th>
-                  <th>OCC Code</th>
+                  <th>OCC / SUC</th>
                   <th>Created</th>
-                  <th style={{ width: 120 }}>Actions</th>
+                  <th style={{ width: 100 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr><td colSpan={7} className="text-center text-muted">No users found</td></tr>
                 ) : (
-                  filtered.map((u, idx) => (
+                  filtered.map((u, idx) => {
+                    const rm = getRoleMeta(u);
+                    return (
                     <tr key={u._id}>
                       <td>{idx + 1}</td>
                       <td>
-                        <i className={`bi ${u.role === 'admin' ? 'bi-shield-check text-primary' : 'bi-person'} me-1`}></i>
+                        <i className={`bi ${rm.icon} me-1`}></i>
                         {u.fullname}
                       </td>
+                      <td className="small text-muted">{u.email || '—'}</td>
                       <td><code>{u.username}</code></td>
                       <td>
-                        <span className={`badge ${u.role === 'admin' ? 'bg-danger' : 'bg-info'}`}>
-                          {u.role}
-                        </span>
+                        <span className={`badge ${rm.badge}`}>{rm.label}</span>
                       </td>
-                      <td>{u.occCode || '—'}</td>
+                      <td className="small">
+                        {u.role === 'admin' ? (u.occCode || '—') : u.role === 'user' ? (u.sucAbbreviation || '—') : '—'}
+                      </td>
                       <td className="small text-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td>
                         <div className="d-flex gap-1">
@@ -149,7 +187,8 @@ function UserManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                  );
+                  })
                 )}
               </tbody>
             </table>
@@ -177,6 +216,12 @@ function UserManagement() {
                       onChange={(e) => setForm({ ...form, fullname: e.target.value })} required />
                   </div>
                   <div className="mb-3">
+                    <label className="form-label fw-semibold">Email</label>
+                    <input type="email" className="form-control" value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="user@example.com" />
+                  </div>
+                  <div className="mb-3">
                     <label className="form-label fw-semibold">Username</label>
                     <input type="text" className="form-control" value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })} required />
@@ -195,19 +240,30 @@ function UserManagement() {
                       <label className="form-label fw-semibold">Role</label>
                       <select className="form-select" value={form.role}
                         onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
+                        {isSuperAdmin && <option value="superadmin">Super Admin</option>}
+                        {isSuperAdmin && <option value="admin">Admin (Commissioner)</option>}
+                        <option value="user">User (SUC)</option>
                       </select>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">OCC Code</label>
-                      <select className="form-select" value={form.occCode}
-                        onChange={(e) => setForm({ ...form, occCode: e.target.value })}>
-                        {OCC_OPTIONS.map((o) => (
-                          <option key={o.code} value={o.code}>{o.label}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {form.role === 'admin' && (
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">OCC Code</label>
+                        <select className="form-select" value={form.occCode}
+                          onChange={(e) => setForm({ ...form, occCode: e.target.value })}>
+                          {OCC_OPTIONS.map((o) => (
+                            <option key={o.code} value={o.code}>{o.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {form.role === 'user' && (
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">SUC Abbreviation</label>
+                        <input type="text" className="form-control" value={form.sucAbbreviation}
+                          onChange={(e) => setForm({ ...form, sucAbbreviation: e.target.value })}
+                          placeholder="e.g. CLSU" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="modal-footer">

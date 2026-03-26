@@ -25,10 +25,14 @@ const sortByRegion = (sucs) => {
 exports.getAllSucs = async (req, res) => {
   try {
     const filter = {};
-    // Non-admin users only see SUCs matching their OCC code
-    if (req.user.role === 'user' && req.user.occCode) {
+    if (req.user.role === 'admin' && req.user.occCode) {
+      // Commissioner: sees only their SUCs
       filter.occCode = req.user.occCode;
+    } else if (req.user.role === 'user' && req.user.sucAbbreviation) {
+      // SUC user: sees only their own SUC
+      filter.abbreviation = req.user.sucAbbreviation;
     }
+    // superadmin: no filter — sees everything
     const sucs = await Suc.find(filter);
     res.json(sortByRegion(sucs));
   } catch (err) {
@@ -53,12 +57,13 @@ exports.createSuc = async (req, res) => {
   try {
     const { sucName, abbreviation, region, address, president, email, contact,
             boardSecretaryName, boardSecretaryEmail, boardSecretaryContact,
-            occCode, chedOfficial, section } = req.body;
+            dateOfBoardMeeting, occCode, chedOfficial, section } = req.body;
     if (!sucName || !region || !section) {
       return res.status(400).json({ message: 'Required fields: sucName, region, section' });
     }
     const suc = await Suc.create({ sucName, abbreviation, region, address, president, email, contact,
-      boardSecretaryName, boardSecretaryEmail, boardSecretaryContact, occCode, chedOfficial, section });
+      boardSecretaryName, boardSecretaryEmail, boardSecretaryContact,
+      dateOfBoardMeeting, occCode, chedOfficial, section });
     res.status(201).json(suc);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -80,7 +85,7 @@ exports.updateSuc = async (req, res) => {
 
     const { sucName, abbreviation, region, address, president, email, contact,
             boardSecretaryName, boardSecretaryEmail, boardSecretaryContact,
-            occCode, chedOfficial, section } = req.body;
+            dateOfBoardMeeting, occCode, chedOfficial, section } = req.body;
     Object.assign(suc, {
       ...(sucName && { sucName }),
       ...(abbreviation !== undefined && { abbreviation }),
@@ -92,6 +97,7 @@ exports.updateSuc = async (req, res) => {
       ...(boardSecretaryName !== undefined && { boardSecretaryName }),
       ...(boardSecretaryEmail !== undefined && { boardSecretaryEmail }),
       ...(boardSecretaryContact !== undefined && { boardSecretaryContact }),
+      ...(dateOfBoardMeeting !== undefined && { dateOfBoardMeeting }),
       ...(occCode !== undefined && { occCode }),
       ...(chedOfficial !== undefined && { chedOfficial }),
       ...(section && { section })

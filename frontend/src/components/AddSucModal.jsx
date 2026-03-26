@@ -8,7 +8,7 @@ function AddSucModal({ show, onClose, onSave, allowedSections }) {
   const [form, setForm] = useState({
     sucName: '', abbreviation: '', region: '', address: '', president: '', email: '', contact: '',
     boardSecretaryName: '', boardSecretaryEmail: '', boardSecretaryContact: '',
-    occCode: '', chedOfficial: '', section: ''
+    dateOfBoardMeeting: '', occCode: '', chedOfficial: '', section: ''
   });
 
   useEffect(() => {
@@ -32,7 +32,7 @@ function AddSucModal({ show, onClose, onSave, allowedSections }) {
     onSave(form);
     setForm({ sucName: '', abbreviation: '', region: '', address: '', president: '', email: '', contact: '',
       boardSecretaryName: '', boardSecretaryEmail: '', boardSecretaryContact: '',
-      occCode: '', chedOfficial: '', section: '' });
+      dateOfBoardMeeting: '', occCode: '', chedOfficial: '', section: '' });
   };
 
   if (!show) return null;
@@ -92,6 +92,10 @@ function AddSucModal({ show, onClose, onSave, allowedSections }) {
                 <div className="col-md-4">
                   <label className="form-label">Board Sec. Contact</label>
                   <input name="boardSecretaryContact" className="form-control" value={form.boardSecretaryContact} onChange={handleChange} />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label">Date of Board Meeting</label>
+                  <input name="dateOfBoardMeeting" type="date" className="form-control" value={form.dateOfBoardMeeting} onChange={handleChange} />
                 </div>
                 <div className="col-md-4">
                   <label className="form-label">OCC Code *</label>

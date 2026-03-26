@@ -19,17 +19,28 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Admin only middleware
-const adminOnly = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+// Super Admin only
+const superAdminOnly = (req, res, next) => {
+  if (req.user.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Super Admin access required' });
+  }
+  next();
+};
+
+// Admin or above (superadmin + admin)
+const adminOrAbove = (req, res, next) => {
+  if (!['superadmin', 'admin'].includes(req.user.role)) {
     return res.status(403).json({ message: 'Admin access required' });
   }
   next();
 };
 
-// User section access — users can only modify Chairperson / Commissioner sections
+// Legacy alias kept for existing routes
+const adminOnly = adminOrAbove;
+
+// Section access guard for SUC modifications
 const userSectionAccess = (req, res, next) => {
-  if (req.user.role === 'admin') return next();
+  if (['superadmin', 'admin'].includes(req.user.role)) return next();
   const { section } = req.body;
   if (section && !['Chairperson', 'Commissioner'].includes(section)) {
     return res.status(403).json({ message: 'You can only manage Chairperson or Commissioner sections' });
@@ -37,4 +48,4 @@ const userSectionAccess = (req, res, next) => {
   next();
 };
 
-module.exports = { authenticate, adminOnly, userSectionAccess };
+module.exports = { authenticate, superAdminOnly, adminOrAbove, adminOnly, userSectionAccess };

@@ -9,7 +9,7 @@ const {
   deleteSuc,
   transferSuc
 } = require('../controllers/sucController');
-const { authenticate, adminOnly, userSectionAccess } = require('../middleware/auth');
+const { authenticate, adminOrAbove, userSectionAccess } = require('../middleware/auth');
 
 // Public routes
 router.get('/public', getPublicSucs);
@@ -20,8 +20,8 @@ router.get('/', authenticate, getAllSucs);
 router.post('/', authenticate, userSectionAccess, createSuc);
 router.put('/:id', authenticate, userSectionAccess, updateSuc);
 
-// Admin-only routes
-router.delete('/:id', authenticate, adminOnly, deleteSuc);
-router.put('/:id/transfer', authenticate, adminOnly, transferSuc);
+// Admin or above routes
+router.delete('/:id', authenticate, adminOrAbove, deleteSuc);
+router.put('/:id/transfer', authenticate, adminOrAbove, transferSuc);
 
 module.exports = router;

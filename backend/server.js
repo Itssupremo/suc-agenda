@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const sucRoutes = require('./routes/sucRoutes');
 const userRoutes = require('./routes/userRoutes');
+const agendaRoutes              = require('./routes/agendaRoutes');
+const documentRoutes            = require('./routes/documentRoutes');
+const dateBoardMeetingRoutes    = require('./routes/dateBoardMeetingRoutes');
 const cors = require('cors');
 
 const app = express();
@@ -15,12 +18,17 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
         "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
         "http://localhost:5173",
+        "http://localhost:5174",
         "https://e-agenda.vercel.app",
       ];
-      // Allow requests with no origin (like mobile apps or curl requests)
+      // Allow requests with no origin (curl, proxied server requests)
       if (!origin) return callback(null, true);
-      // Also allow any .vercel.app subdomain
+      // Allow any localhost port in development
+      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      // Allow any .vercel.app subdomain
       if (origin.endsWith('.vercel.app') || allowedOrigins.indexOf(origin) !== -1) {
         return callback(null, true);
       }
@@ -41,6 +49,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/sucs', sucRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/agendas',             agendaRoutes);
+app.use('/api/documents',          documentRoutes);
+app.use('/api/dateboardmeetings',   dateBoardMeetingRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'e-Agenda System API is running' });
