@@ -29,8 +29,12 @@ app.use(
       if (!origin) return callback(null, true);
       // Allow any localhost port in development
       if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
-      // Allow any .vercel.app subdomain
-      if (origin.endsWith('.vercel.app') || allowedOrigins.indexOf(origin) !== -1) {
+      // Allow any .vercel.app or .ondigitalocean.app subdomain
+      if (
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.ondigitalocean.app') ||
+        allowedOrigins.indexOf(origin) !== -1
+      ) {
         return callback(null, true);
       }
       const msg =
@@ -62,8 +66,13 @@ app.use('/api/agendas',             agendaRoutes);
 app.use('/api/documents',          documentRoutes);
 app.use('/api/dateboardmeetings',   dateBoardMeetingRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ message: 'e-Agenda System API is running' });
+// Serve built React frontend on DigitalOcean (production)
+const FRONTEND_DIST = path.join(__dirname, '../frontend/dist');
+app.use(express.static(FRONTEND_DIST));
+
+// Catch-all: return index.html for any non-API route (React Router support)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
 });
 
 // Connect to MongoDB
