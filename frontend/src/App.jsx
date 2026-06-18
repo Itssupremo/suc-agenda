@@ -11,6 +11,7 @@ import RegularBoardMeeting from './pages/RegularBoardMeeting';
 import MinutesOfMeeting from './pages/MinutesOfMeeting';
 import SpecialBoardMeeting from './pages/SpecialBoardMeeting';
 import MyAccount from './pages/MyAccount';
+import Analytics from './pages/Analytics';
 import { getMe } from './services/api';
 
 const PAGE_TITLES = {
@@ -115,6 +116,10 @@ function App() {
             <Route
               path="/admin/users"
               element={['superadmin', 'admin'].includes(user.role) ? <UserManagement user={user} /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/admin/analytics"
+              element={['superadmin', 'admin'].includes(user.role) ? <Analytics user={user} /> : <Navigate to="/dashboard" />}
             />
             {/* SuperAdmin + Admin + User (SUC) */}
             <Route

@@ -1,5 +1,6 @@
 const Agenda = require('../models/Agenda');
 const multer  = require('multer');
+const { uploadToS3, getFromS3, deleteFromS3 } = require('../utils/s3Storage');
 
 // Store uploads in memory so we can save the buffer to MongoDB
 const upload = multer({
@@ -53,11 +54,31 @@ exports.uploadFiles = async (req, res) => {
 
     if (req.files?.oldAgenda?.[0]) {
       const f = req.files.oldAgenda[0];
-      doc.oldAgenda = { filename: f.originalname, data: f.buffer, contentType: f.mimetype, uploadedAt: new Date() };
+      if (doc.oldAgenda?.s3Key) {
+        await deleteFromS3(doc.oldAgenda.s3Key);
+      }
+      const s3Key = await uploadToS3(f.originalname, f.buffer, f.mimetype);
+      doc.oldAgenda = {
+        filename: f.originalname,
+        data: s3Key ? undefined : f.buffer,
+        s3Key: s3Key || undefined,
+        contentType: f.mimetype,
+        uploadedAt: new Date()
+      };
     }
     if (req.files?.newAgenda?.[0]) {
       const f = req.files.newAgenda[0];
-      doc.newAgenda = { filename: f.originalname, data: f.buffer, contentType: f.mimetype, uploadedAt: new Date() };
+      if (doc.newAgenda?.s3Key) {
+        await deleteFromS3(doc.newAgenda.s3Key);
+      }
+      const s3Key = await uploadToS3(f.originalname, f.buffer, f.mimetype);
+      doc.newAgenda = {
+        filename: f.originalname,
+        data: s3Key ? undefined : f.buffer,
+        s3Key: s3Key || undefined,
+        contentType: f.mimetype,
+        uploadedAt: new Date()
+      };
     }
 
     await doc.save();
@@ -74,7 +95,18 @@ exports.resetFiles = async (req, res) => {
     const { sucId, quarter } = req.params;
     const year = parseInt(req.query.year);
     if (!year) return res.status(400).json({ message: 'year is required' });
-    await Agenda.findOneAndDelete({ sucId, year, quarter });
+    
+    const doc = await Agenda.findOne({ sucId, year, quarter });
+    if (doc) {
+      if (doc.oldAgenda?.s3Key) {
+        await deleteFromS3(doc.oldAgenda.s3Key);
+      }
+      if (doc.newAgenda?.s3Key) {
+        await deleteFromS3(doc.newAgenda.s3Key);
+      }
+      await doc.deleteOne();
+    }
+    
     res.json({ message: 'Reset successful' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -136,11 +168,22 @@ exports.serveFile = async (req, res) => {
     if (!doc) return res.status(404).json({ message: 'Not found' });
 
     const file = type === 'old' ? doc.oldAgenda : doc.newAgenda;
-    if (!file?.data) return res.status(404).json({ message: 'No file uploaded for this slot' });
+    if (!file) return res.status(404).json({ message: 'No file uploaded for this slot' });
+
+    if (!file.s3Key && !file.data) {
+      return res.status(404).json({ message: 'No file uploaded for this slot' });
+    }
 
     res.set('Content-Type', file.contentType || 'application/pdf');
     res.set('Content-Disposition', `inline; filename="${encodeURIComponent(file.filename)}"`);
-    res.send(file.data);
+
+    if (file.s3Key) {
+      const buffer = await getFromS3(file.s3Key);
+      if (!buffer) return res.status(404).json({ message: 'File not found in storage bucket' });
+      res.send(buffer);
+    } else {
+      res.send(file.data);
+    }
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

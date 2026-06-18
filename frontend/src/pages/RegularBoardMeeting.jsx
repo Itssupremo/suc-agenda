@@ -106,8 +106,7 @@ function QuarterCard({ quarter, agendaDoc, sucId, sucName, year, onRefresh, onVi
     setResetting(true);
     try {
       await resetAgenda(sucId, quarter, year);
-      setOldFile(null);
-      setNewFile(null);
+      setAgendaFile(null);
       flash('success', 'Quarter files reset.');
       onRefresh();
     } catch (err) {

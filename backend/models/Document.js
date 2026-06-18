@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const fileSchema = new mongoose.Schema({
   filename:    { type: String, default: '' },
   data:        { type: Buffer },
+  s3Key:       { type: String },
   contentType: { type: String, default: 'application/pdf' },
   uploadedAt:  { type: Date },
 }, { _id: false });
