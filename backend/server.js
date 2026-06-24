@@ -66,13 +66,13 @@ app.use('/api/agendas',             agendaRoutes);
 app.use('/api/documents',          documentRoutes);
 app.use('/api/dateboardmeetings',   dateBoardMeetingRoutes);
 
-// Serve built React frontend on DigitalOcean (production)
-const FRONTEND_DIST = path.join(__dirname, '../frontend/dist');
-app.use(express.static(FRONTEND_DIST));
+// Health endpoints for platforms/readiness checks
+app.get('/health', (req, res) => {
+  res.json({ ok: true, service: 'backend' });
+});
 
-// Catch-all: return index.html for any non-API route (React Router support)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, service: 'backend' });
 });
 
 // Connect to MongoDB

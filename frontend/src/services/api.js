@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api' });
+const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').trim();
+const baseURL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+
+const API = axios.create({ baseURL });
 
 // Attach token to every request
 API.interceptors.request.use((config) => {
@@ -58,7 +61,7 @@ export const resetAgenda = (sucId, quarter, year) =>
   API.delete(`/agendas/${sucId}/${quarter}`, { params: { year } });
 
 export const getAgendaFileUrl = (agendaId, type) =>
-  `/api/agendas/file/${agendaId}/${type}`;
+  `${baseURL}/agendas/file/${agendaId}/${type}`;
 
 export const getDocs = (sucId, year, pageType) =>
   API.get('/documents', { params: { sucId, year, pageType } });
