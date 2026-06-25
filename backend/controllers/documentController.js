@@ -1,6 +1,7 @@
 const Document = require('../models/Document');
 const multer   = require('multer');
 const { uploadToS3, getFromS3, deleteFromS3 } = require('../utils/s3Storage');
+const { logActivity } = require('../utils/activityLogger');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -59,6 +60,7 @@ exports.uploadFile = async (req, res) => {
       };
     }
     await doc.save();
+    logActivity(req, 'UPLOAD_DOCUMENT', `Uploaded document file for ${sucName || 'SUC'} (Type: ${pageType}, Slot: ${slot}, Year: ${year})`);
     res.json(safe(doc));
   } catch (err) {
     res.status(500).json({ message: err.message || 'Server error' });
@@ -79,7 +81,9 @@ exports.resetFile = async (req, res) => {
       for (const f of allFiles) {
         if (f.s3Key) await deleteFromS3(f.s3Key);
       }
+      const savedSucName = doc.sucName;
       await doc.deleteOne();
+      logActivity(req, 'RESET_DOCUMENT', `Reset document files and history for ${savedSucName || 'SUC'} (Type: ${pageType}, Slot: ${slot}, Year: ${year})`);
     }
     
     res.json({ message: 'Reset successful' });

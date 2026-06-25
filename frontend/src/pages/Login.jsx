@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { login as loginApi, loginByEmail as loginByEmailApi } from '../services/api'; // loginByEmailApi used by Google Sign-In
 
 const font = "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -16,7 +16,7 @@ const FEATURES = [
 ];
 
 const LockIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" />
     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
@@ -100,11 +100,81 @@ function Login({ onLogin }) {
         .login-outer { overflow-y: auto; }
         .login-left { display: flex; }
         .login-right { flex: 1 1 50%; }
+        
+        @keyframes float {
+          0% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(2deg); }
+          100% { transform: translateY(0px) rotate(0deg); }
+        }
+        @keyframes pulseGlow {
+          0% { opacity: 0.12; transform: scale(1); }
+          50% { opacity: 0.22; transform: scale(1.1); }
+          100% { opacity: 0.12; transform: scale(1); }
+        }
+        @keyframes fadeInSlideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseStatus {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.4); opacity: 0.4; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-float {
+          animation: float 8s ease-in-out infinite;
+        }
+        .animate-glow-1 {
+          animation: pulseGlow 10s ease-in-out infinite alternate;
+        }
+        .animate-glow-2 {
+          animation: pulseGlow 14s ease-in-out infinite alternate-reverse;
+        }
+        .animate-fade-in-up {
+          animation: fadeInSlideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .pulse-dot {
+          position: relative;
+        }
+        .pulse-dot::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 50%;
+          background: inherit;
+          animation: pulseStatus 2s infinite ease-in-out;
+        }
+
+        .login-card {
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .login-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03), 0 16px 40px rgba(13,27,62,0.12) !important;
+        }
+
+        .stat-chip {
+          transition: all 0.25s ease;
+        }
+        .stat-chip:hover {
+          transform: translateY(-2px);
+          background: rgba(255,255,255,0.13) !important;
+          border-color: rgba(251,191,36,0.3) !important;
+        }
+
+        .input-wrapper input {
+          transition: all 0.2s ease;
+        }
+        .input-wrapper input:focus {
+          border-color: #2563eb !important;
+          background: #fff !important;
+          box-shadow: 0 0 0 4px rgba(37,99,235,0.12) !important;
+        }
+
         @media (max-width: 767px) {
           .login-outer { flex-direction: column; }
           .login-left { display: none !important; }
-          .login-right { flex: 1 1 100% !important; min-height: 100vh; padding: 1.5rem 1rem !important; }
-          .login-right-inner { max-width: 100% !important; }
+          .login-right { flex: 1 1 100% !important; min-height: 100vh; padding: 2rem 1.25rem !important; }
         }
       `}</style>
 
@@ -112,17 +182,32 @@ function Login({ onLogin }) {
       <div className="login-left" style={{
         flex: '1 1 50%',
         position: 'relative',
-        background: 'linear-gradient(150deg, #0a1628 0%, #0d2150 55%, #0a3177 100%)',
+        background: 'linear-gradient(150deg, #071221 0%, #0c1c44 50%, #082862 100%)',
         flexDirection: 'column',
         overflow: 'hidden',
       }}>
 
+        {/* Ambient Glowing Orbs */}
+        <div className="animate-glow-1" style={{
+          position: 'absolute', top: '15%', left: '-15%',
+          width: '500px', height: '500px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%)',
+          filter: 'blur(60px)', pointerEvents: 'none'
+        }} />
+        <div className="animate-glow-2" style={{
+          position: 'absolute', bottom: '15%', right: '-10%',
+          width: '450px', height: '450px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(251,191,36,0.09) 0%, transparent 70%)',
+          filter: 'blur(70px)', pointerEvents: 'none'
+        }} />
+
         {/* background sun decoration */}
         <svg
           viewBox="0 0 500 500"
+          className="animate-float"
           style={{
-            position: 'absolute', right: -80, bottom: -80,
-            width: 420, height: 420, opacity: 0.07, pointerEvents: 'none',
+            position: 'absolute', right: -60, bottom: -60,
+            width: 440, height: 440, opacity: 0.06, pointerEvents: 'none',
           }}
           aria-hidden="true"
         >
@@ -133,27 +218,27 @@ function Login({ onLogin }) {
             const rad = (deg * Math.PI) / 180;
             const x1 = 250 + 90 * Math.cos(rad);
             const y1 = 250 + 90 * Math.sin(rad);
-            const x2 = 250 + 170 * Math.cos(rad);
-            const y2 = 250 + 170 * Math.sin(rad);
+            const x2 = 250 + 175 * Math.cos(rad);
+            const y2 = 250 + 175 * Math.sin(rad);
             return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth="10" strokeLinecap="round" />;
           })}
           {[22.5,67.5,112.5,157.5,202.5,247.5,292.5,337.5].map((deg, i) => {
             const rad = (deg * Math.PI) / 180;
             const x1 = 250 + 90 * Math.cos(rad);
             const y1 = 250 + 90 * Math.sin(rad);
-            const x2 = 250 + 140 * Math.cos(rad);
-            const y2 = 250 + 140 * Math.sin(rad);
+            const x2 = 250 + 145 * Math.cos(rad);
+            const y2 = 250 + 145 * Math.sin(rad);
             return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth="6" strokeLinecap="round" />;
           })}
         </svg>
 
         {/* subtle dot-grid pattern */}
         <svg
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.04, pointerEvents: 'none' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.03, pointerEvents: 'none' }}
           aria-hidden="true"
         >
           <defs>
-            <pattern id="dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+            <pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
               <circle cx="2" cy="2" r="1.5" fill="#fff" />
             </pattern>
           </defs>
@@ -163,21 +248,21 @@ function Login({ onLogin }) {
         {/* top bar */}
         <div style={{
           position: 'relative', zIndex: 1,
-          padding: '0.9rem 2rem',
-          display: 'flex', alignItems: 'center', gap: 10,
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          padding: '1rem 2.5rem',
+          display: 'flex', alignItems: 'center', gap: 12,
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
           flexShrink: 0,
         }}>
-          <img src="/ched-logo.png" alt="CHED" style={{ height: 28, filter: 'brightness(0) invert(1)' }} />
+          <img src="/ched-logo.png" alt="CHED" style={{ height: 30, filter: 'brightness(0) invert(1)' }} />
           <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.2)' }} />
-          <span style={{ fontFamily: font, fontWeight: 800, fontSize: '0.88rem', color: '#fff', letterSpacing: '-0.1px' }}>
+          <span style={{ fontFamily: font, fontWeight: 800, fontSize: '0.92rem', color: '#fff', letterSpacing: '-0.1px' }}>
             e-Agenda <span style={{ color: '#fbbf24' }}>System</span>
           </span>
           <div style={{ marginLeft: 'auto' }}>
             <img
               src="/bp-logo-white.png"
               alt="Bagong Pilipinas"
-              style={{ height: 28, opacity: 0.85 }}
+              style={{ height: 30, opacity: 0.9 }}
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           </div>
@@ -189,115 +274,116 @@ function Login({ onLogin }) {
           flex: 1,
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
           alignItems: 'center',
-          padding: '1rem 2.5rem',
+          padding: '2rem 3rem',
           minHeight: 0,
           overflow: 'hidden',
         }}>
           <div style={{ width: '100%', maxWidth: 440 }}>
 
-          {/* E-Agenda logo — frosted glass container, no white background */}
-          <div style={{ marginBottom: '0.6rem' }}>
-            <div style={{
-              width: 64,
-              height: 64,
-              borderRadius: 14,
-              background: 'rgba(255,255,255,0.08)',
-              border: '1.5px solid rgba(255,255,255,0.18)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              <img
-                src="/e-agenda-logo.png"
-                alt="E-Agenda System"
-                style={{ width: 56, height: 56, objectFit: 'contain', display: 'block' }}
-              />
-            </div>
-          </div>
-
-          {/* gold accent bar */}
-          <div style={{
-            width: 36, height: 3, borderRadius: 2,
-            background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
-            marginBottom: '0.6rem',
-          }} />
-
-          <h1 style={{
-            fontFamily: font,
-            fontWeight: 900,
-            fontSize: 'clamp(1.2rem, 1.8vw, 1.7rem)',
-            color: '#fff',
-            lineHeight: 1.18,
-            margin: '0 0 0.5rem',
-            letterSpacing: '-0.4px',
-          }}>
-            Commission on<br />
-            <span style={{ color: '#fbbf24' }}>Higher Education</span><br />
-            e-Agenda Portal
-          </h1>
-
-          <p style={{
-            fontFamily: font,
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '0.78rem',
-            lineHeight: 1.55,
-            margin: '0 0 0.9rem',
-            maxWidth: 400,
-          }}>
-            A unified digital platform for managing board meeting agendas across all
-            State Universities and Colleges nationwide.
-          </p>
-
-          {/* stat chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '0.9rem' }}>
-            {STATS.map((s) => (
-              <div key={s.label} style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.14)',
-                borderRadius: 7,
-                padding: '0.25rem 0.65rem',
-                backdropFilter: 'blur(4px)',
+            {/* E-Agenda logo — frosted glass container */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{
+                width: 68,
+                height: 68,
+                borderRadius: 16,
+                background: 'rgba(255,255,255,0.07)',
+                border: '1.5px solid rgba(255,255,255,0.16)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
               }}>
-                <div style={{ fontFamily: font, fontWeight: 800, fontSize: '0.85rem', color: '#fbbf24', lineHeight: 1.1 }}>{s.value}</div>
-                <div style={{ fontFamily: font, fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', marginTop: 1, whiteSpace: 'nowrap' }}>{s.label}</div>
+                <img
+                  src="/e-agenda-logo.png"
+                  alt="E-Agenda System"
+                  style={{ width: 52, height: 52, objectFit: 'contain' }}
+                />
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* feature list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {FEATURES.map((f) => (
-              <div key={f.title} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                <div style={{
-                  width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-                  background: 'rgba(251,191,36,0.12)',
-                  border: '1px solid rgba(251,191,36,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+            {/* gold accent bar */}
+            <div style={{
+              width: 40, height: 4, borderRadius: 2,
+              background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+              marginBottom: '1rem',
+            }} />
+
+            <h1 style={{
+              fontFamily: font,
+              fontWeight: 900,
+              fontSize: 'clamp(1.5rem, 2.2vw, 2rem)',
+              color: '#fff',
+              lineHeight: 1.15,
+              margin: '0 0 0.75rem',
+              letterSpacing: '-0.5px',
+            }}>
+              Commission on<br />
+              <span style={{ color: '#fbbf24' }}>Higher Education</span><br />
+              e-Agenda Portal
+            </h1>
+
+            <p style={{
+              fontFamily: font,
+              color: 'rgba(255,255,255,0.65)',
+              fontSize: '0.85rem',
+              lineHeight: 1.55,
+              margin: '0 0 1.5rem',
+              maxWidth: 420,
+            }}>
+              A unified digital platform for managing board meeting agendas and compliance metrics across all
+              State Universities and Colleges nationwide.
+            </p>
+
+            {/* stat chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '1.8rem' }}>
+              {STATS.map((s) => (
+                <div className="stat-chip" key={s.label} style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 10,
+                  padding: '0.4rem 0.85rem',
+                  backdropFilter: 'blur(6px)',
+                  cursor: 'default',
                 }}>
-                  <i className={`bi ${f.icon}`} style={{ fontSize: '0.75rem', color: '#fbbf24' }} />
+                  <div style={{ fontFamily: font, fontWeight: 800, fontSize: '0.95rem', color: '#fbbf24', lineHeight: 1.1 }}>{s.value}</div>
+                  <div style={{ fontFamily: font, fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginTop: 2, whiteSpace: 'nowrap' }}>{s.label}</div>
                 </div>
-                <div>
-                  <div style={{ fontFamily: font, fontWeight: 700, fontSize: '0.75rem', color: '#fff', lineHeight: 1.3 }}>{f.title}</div>
-                  <div style={{ fontFamily: font, fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4, marginTop: 1 }}>{f.desc}</div>
+              ))}
+            </div>
+
+            {/* feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {FEATURES.map((f) => (
+                <div key={f.title} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                    background: 'rgba(251,191,36,0.1)',
+                    border: '1px solid rgba(251,191,36,0.22)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <i className={`bi ${f.icon}`} style={{ fontSize: '0.85rem', color: '#fbbf24' }} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', lineHeight: 1.3 }}>{f.title}</div>
+                    <div style={{ fontFamily: font, fontSize: '0.72rem', color: 'rgba(255,255,255,0.48)', lineHeight: 1.45, marginTop: 2 }}>{f.desc}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* bottom strip */}
         <div style={{
           position: 'relative', zIndex: 1,
-          padding: '0.6rem 2rem',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          padding: '0.8rem 2.5rem',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
           display: 'flex', alignItems: 'center', gap: 6,
           flexShrink: 0,
         }}>
-          <span style={{ fontFamily: font, fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontFamily: font, fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
             &copy; {new Date().getFullYear()} Commission on Higher Education &mdash; Republic of the Philippines
           </span>
         </div>
@@ -309,102 +395,103 @@ function Login({ onLogin }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: '3.5rem 2rem 2rem',
+        justifyContent: 'center',
+        padding: '3rem 2rem',
         overflow: 'auto',
         position: 'relative',
       }}>
 
         {/* floating top-right badge */}
         <div style={{
-          position: 'absolute', top: 20, right: 20,
-          display: 'flex', alignItems: 'center', gap: 6,
+          position: 'absolute', top: 24, right: 24,
+          display: 'flex', alignItems: 'center', gap: 8,
           background: '#fff',
           border: '1px solid #e2e8f0',
-          borderRadius: 20, padding: '5px 12px',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          borderRadius: 20, padding: '6px 14px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
         }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-          <span style={{ fontFamily: font, fontSize: '0.72rem', fontWeight: 600, color: '#374151' }}>System Online</span>
+          <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+          <span style={{ fontFamily: font, fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>System Active</span>
         </div>
 
-        {/* heading */}
-        <div style={{ width: '100%', maxWidth: 440, marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.75rem' }}>
-            <img src="/ched-logo.png" alt="CHED" style={{ height: 36 }} />
+        {/* heading container */}
+        <div className="animate-fade-in-up" style={{ width: '100%', maxWidth: 420, marginBottom: '1.5rem', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
+            <img src="/ched-logo.png" alt="CHED" style={{ height: 48 }} />
           </div>
           <h2 style={{
             fontFamily: font,
-            fontWeight: 800,
-            fontSize: '1.55rem',
-            color: '#0d1b3e',
+            fontWeight: 850,
+            fontSize: '1.75rem',
+            color: '#0f172a',
             margin: 0,
             lineHeight: 1.2,
-            letterSpacing: '-0.5px',
+            letterSpacing: '-0.75px',
           }}>
-            Welcome back
+            Welcome Back
           </h2>
           <p style={{
             fontFamily: font,
             color: '#64748b',
-            fontSize: '0.85rem',
-            marginTop: 5,
+            fontSize: '0.88rem',
+            marginTop: 6,
             marginBottom: 0,
             lineHeight: 1.5,
           }}>
-            Sign in to access the e-Agenda portal.
+            Sign in to access your administrative dashboard
           </p>
         </div>
 
-        {/* card */}
-        <div style={{
+        {/* login card */}
+        <div className="login-card animate-fade-in-up" style={{
           background: '#fff',
-          borderRadius: 18,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05), 0 8px 32px rgba(13,27,62,0.08)',
+          borderRadius: 20,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02), 0 12px 36px rgba(13,27,62,0.06)',
           width: '100%',
-          maxWidth: 440,
+          maxWidth: 420,
           overflow: 'hidden',
-          border: '1px solid #e8edf5',
+          border: '1px solid #e2e8f0',
         }}>
 
-          {/* top accent stripe */}
+          {/* top accent gradient bar */}
           <div style={{
-            height: 4,
-            background: 'linear-gradient(90deg, #0d2150 0%, #2563eb 50%, #fbbf24 100%)',
+            height: 5,
+            background: 'linear-gradient(90deg, #0c1c44 0%, #2563eb 50%, #fbbf24 100%)',
           }} />
 
-          <div style={{ padding: '1.75rem 1.75rem 1.5rem' }}>
+          <div style={{ padding: '2rem 2rem 1.75rem' }}>
 
             {error && (
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 8,
+                display: 'flex', alignItems: 'center', gap: 10,
                 background: '#fef2f2', border: '1px solid #fecaca',
-                borderRadius: 8, padding: '0.6rem 0.9rem',
-                marginBottom: '1rem',
+                borderRadius: 10, padding: '0.7rem 1rem',
+                marginBottom: '1.25rem',
               }}>
-                <i className="bi bi-exclamation-circle-fill" style={{ color: '#ef4444', fontSize: '0.85rem', flexShrink: 0 }} />
-                <span style={{ fontFamily: font, fontSize: '0.82rem', color: '#dc2626' }}>{error}</span>
+                <i className="bi bi-exclamation-circle-fill" style={{ color: '#ef4444', fontSize: '0.95rem', flexShrink: 0 }} />
+                <span style={{ fontFamily: font, fontSize: '0.82rem', color: '#dc2626', fontWeight: 500 }}>{error}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
 
               {/* Username field */}
-              <div style={{ marginBottom: '1rem' }}>
+              <div style={{ marginBottom: '1.1rem' }}>
                 <label style={{
-                  fontFamily: font, fontSize: '0.78rem', fontWeight: 700,
-                  color: '#334155', display: 'block', marginBottom: 6,
-                  textTransform: 'uppercase', letterSpacing: '0.5px',
+                  fontFamily: font, fontSize: '0.75rem', fontWeight: 700,
+                  color: '#475569', display: 'block', marginBottom: 6,
+                  textTransform: 'uppercase', letterSpacing: '0.75px',
                 }}>
                   Username
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper" style={{ position: 'relative' }}>
                   <span style={{
-                    position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
                     color: focusUser ? '#2563eb' : '#94a3b8',
                     transition: 'color 0.15s', pointerEvents: 'none',
+                    display: 'flex', alignItems: 'center',
                   }}>
-                    <i className="bi bi-person" style={{ fontSize: '1rem' }} />
+                    <i className="bi bi-person" style={{ fontSize: '1.1rem' }} />
                   </span>
                   <input
                     type="text"
@@ -412,16 +499,15 @@ function Login({ onLogin }) {
                     style={{
                       fontFamily: font,
                       width: '100%',
-                      height: 46,
-                      paddingLeft: 40,
+                      height: 48,
+                      paddingLeft: 42,
                       paddingRight: 14,
-                      borderRadius: 10,
+                      borderRadius: 12,
                       border: `1.5px solid ${focusUser ? '#2563eb' : '#e2e8f0'}`,
-                      background: focusUser ? '#f0f6ff' : '#f8fafc',
-                      fontSize: '0.9rem',
+                      background: focusUser ? '#fff' : '#f8fafc',
+                      fontSize: '0.92rem',
                       color: '#0f172a',
                       outline: 'none',
-                      transition: 'border-color 0.15s, background 0.15s',
                       boxSizing: 'border-box',
                     }}
                     placeholder="Enter your username"
@@ -437,21 +523,22 @@ function Login({ onLogin }) {
               </div>
 
               {/* Password field */}
-              <div style={{ marginBottom: '1.4rem' }}>
+              <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{
-                  fontFamily: font, fontSize: '0.78rem', fontWeight: 700,
-                  color: '#334155', display: 'block', marginBottom: 6,
-                  textTransform: 'uppercase', letterSpacing: '0.5px',
+                  fontFamily: font, fontSize: '0.75rem', fontWeight: 700,
+                  color: '#475569', display: 'block', marginBottom: 6,
+                  textTransform: 'uppercase', letterSpacing: '0.75px',
                 }}>
                   Password
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper" style={{ position: 'relative' }}>
                   <span style={{
-                    position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
                     color: focusPass ? '#2563eb' : '#94a3b8',
                     transition: 'color 0.15s', pointerEvents: 'none',
+                    display: 'flex', alignItems: 'center',
                   }}>
-                    <i className="bi bi-lock" style={{ fontSize: '1rem' }} />
+                    <i className="bi bi-lock" style={{ fontSize: '1.1rem' }} />
                   </span>
                   <input
                     type={showPass ? 'text' : 'password'}
@@ -459,19 +546,18 @@ function Login({ onLogin }) {
                     style={{
                       fontFamily: font,
                       width: '100%',
-                      height: 46,
-                      paddingLeft: 40,
-                      paddingRight: 46,
-                      borderRadius: 10,
+                      height: 48,
+                      paddingLeft: 42,
+                      paddingRight: 48,
+                      borderRadius: 12,
                       border: `1.5px solid ${focusPass ? '#2563eb' : '#e2e8f0'}`,
-                      background: focusPass ? '#f0f6ff' : '#f8fafc',
-                      fontSize: '0.9rem',
+                      background: focusPass ? '#fff' : '#f8fafc',
+                      fontSize: '0.92rem',
                       color: '#0f172a',
                       outline: 'none',
-                      transition: 'border-color 0.15s, background 0.15s',
                       boxSizing: 'border-box',
                     }}
-                    placeholder="••••••••••"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusPass(true)}
@@ -484,12 +570,12 @@ function Login({ onLogin }) {
                     onClick={() => setShowPass(!showPass)}
                     tabIndex={-1}
                     style={{
-                      position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)',
+                      position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                       background: 'none', border: 'none', color: '#94a3b8',
-                      cursor: 'pointer', padding: 0, lineHeight: 1,
+                      cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center',
                     }}
                   >
-                    <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`} style={{ fontSize: '1rem' }} />
+                    <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`} style={{ fontSize: '1.15rem' }} />
                   </button>
                 </div>
               </div>
@@ -502,31 +588,31 @@ function Login({ onLogin }) {
                   fontFamily: font,
                   width: '100%', height: 48,
                   background: loading
-                    ? '#475569'
-                    : 'linear-gradient(135deg, #0d2150 0%, #2563eb 100%)',
+                    ? '#64748b'
+                    : 'linear-gradient(135deg, #0c1c44 0%, #1e3a8a 100%)',
                   color: '#fff',
-                  border: 'none', borderRadius: 10,
-                  fontWeight: 700, fontSize: '0.92rem',
+                  border: 'none', borderRadius: 12,
+                  fontWeight: 700, fontSize: '0.95rem',
                   letterSpacing: '0.2px',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  boxShadow: loading ? 'none' : '0 4px 14px rgba(37,99,235,0.35)',
-                  transition: 'opacity 0.15s, box-shadow 0.15s',
+                  boxShadow: loading ? 'none' : '0 4px 18px rgba(12,28,68,0.25)',
+                  transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = '0.9'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.opacity = '0.95'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
               >
                 {loading
                   ? <><span className="spinner-border spinner-border-sm" style={{ width: 16, height: 16 }} /> Signing in...</>
-                  : <>Sign In &nbsp;<i className="bi bi-arrow-right-short" style={{ fontSize: '1.15rem' }} /></>
+                  : <>Sign In &nbsp;<i className="bi bi-arrow-right-short" style={{ fontSize: '1.25rem' }} /></>
                 }
               </button>
             </form>
 
             {/* ── OR divider ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '1.1rem 0 1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '1.25rem 0' }}>
               <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-              <span style={{ fontFamily: font, fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>OR CONTINUE WITH</span>
+              <span style={{ fontFamily: font, fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>OR</span>
               <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
             </div>
 
@@ -539,17 +625,17 @@ function Login({ onLogin }) {
                 fontFamily: font,
                 width: '100%', height: 46,
                 background: googleLoading ? '#f8fafc' : '#fff',
-                color: '#374151',
+                color: '#334155',
                 border: '1.5px solid #e2e8f0',
-                borderRadius: 10,
-                fontWeight: 600, fontSize: '0.88rem',
+                borderRadius: 12,
+                fontWeight: 600, fontSize: '0.9rem',
                 cursor: googleLoading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
-                transition: 'border-color 0.15s, box-shadow 0.15s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => { if (!googleLoading) { e.currentTarget.style.borderColor = '#a0aec0'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)'; } }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)'; }}
+              onMouseEnter={(e) => { if (!googleLoading) { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = '0 3px 10px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               {googleLoading ? (
                 <><span className="spinner-border spinner-border-sm" style={{ width: 16, height: 16 }} /> Signing in with Google...</>
@@ -572,29 +658,29 @@ function Login({ onLogin }) {
 
           {/* security footer */}
           <div style={{
-            background: '#fdf4ef',
-            borderTop: '1px solid #fde8d8',
-            padding: '0.7rem 1.75rem',
+            background: '#fafaf9',
+            borderTop: '1px solid #f5f5f4',
+            padding: '0.8rem 1.75rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 10,
           }}>
             <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-              fontFamily: font, fontSize: '0.73rem', color: '#78716c',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontFamily: font, fontSize: '0.75rem', color: '#78716c',
             }}>
               <LockIcon /> Secured by
-              <strong style={{ color: '#292524' }}>CHED e-Agenda Auth</strong>
+              <strong style={{ color: '#1c1917' }}>CHED e-Agenda Auth</strong>
             </span>
-            <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#d6b89a', flexShrink: 0 }} />
-            <span style={{ fontFamily: font, fontSize: '0.7rem', color: '#b45309', fontWeight: 600 }}>
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d6d3d1', flexShrink: 0 }} />
+            <span style={{ fontFamily: font, fontSize: '0.72rem', color: '#b45309', fontWeight: 650 }}>
               Philippines
             </span>
           </div>
         </div>
 
         <p style={{
-          fontFamily: font, color: '#94a3b8', fontSize: '0.72rem',
-          marginTop: '1.1rem', textAlign: 'center', lineHeight: 1.5,
+          fontFamily: font, color: '#94a3b8', fontSize: '0.75rem',
+          marginTop: '1.5rem', textAlign: 'center', lineHeight: 1.5,
         }}>
           Don&apos;t have an account? Contact your system administrator.
         </p>

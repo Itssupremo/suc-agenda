@@ -1,4 +1,5 @@
 const Suc = require('../models/Suc');
+const { logActivity } = require('../utils/activityLogger');
 
 // OCC Officials lookup — used for transfers
 const OCC_OFFICIALS = {
@@ -64,6 +65,7 @@ exports.createSuc = async (req, res) => {
     const suc = await Suc.create({ sucName, abbreviation, region, address, president, email, contact,
       boardSecretaryName, boardSecretaryEmail, boardSecretaryContact,
       dateOfBoardMeeting, occCode, chedOfficial, section });
+    logActivity(req, 'CREATE_SUC', `Created SUC: ${suc.sucName} (${suc.abbreviation})`);
     res.status(201).json(suc);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -103,6 +105,7 @@ exports.updateSuc = async (req, res) => {
       ...(section && { section })
     });
     await suc.save();
+    logActivity(req, 'UPDATE_SUC', `Updated SUC details: ${suc.sucName} (${suc.abbreviation})`);
     res.json(suc);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -114,6 +117,7 @@ exports.deleteSuc = async (req, res) => {
   try {
     const suc = await Suc.findByIdAndDelete(req.params.id);
     if (!suc) return res.status(404).json({ message: 'SUC not found' });
+    logActivity(req, 'DELETE_SUC', `Deleted SUC: ${suc.sucName} (${suc.abbreviation})`);
     res.json({ message: 'SUC deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -145,6 +149,7 @@ exports.transferSuc = async (req, res) => {
     suc.chedOfficial = official.name;
     suc.section = official.section;
     await suc.save();
+    logActivity(req, 'TRANSFER_SUC', `Transferred SUC ${suc.sucName} (${suc.abbreviation}) to OCC official: ${official.name} (${occCode})`);
     res.json(suc);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

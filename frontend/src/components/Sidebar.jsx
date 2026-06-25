@@ -20,7 +20,10 @@ const superAdminNav = [
   },
   {
     section: 'MANAGEMENT',
-    items: [{ label: 'User Management', icon: 'bi-people', path: '/admin/users' }],
+    items: [
+      { label: 'User Management', icon: 'bi-people', path: '/admin/users' },
+      { label: 'Users Log', icon: 'bi-journal-text', path: '/admin/logs' }
+    ],
   },
 ];
 
@@ -43,7 +46,10 @@ const adminNav = [
   },
   {
     section: 'MANAGEMENT',
-    items: [{ label: 'User Management', icon: 'bi-people', path: '/admin/users' }],
+    items: [
+      { label: 'User Management', icon: 'bi-people', path: '/admin/users' },
+      { label: 'Users Log', icon: 'bi-journal-text', path: '/admin/logs' }
+    ],
   },
 ];
 

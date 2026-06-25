@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const agendaRoutes              = require('./routes/agendaRoutes');
 const documentRoutes            = require('./routes/documentRoutes');
 const dateBoardMeetingRoutes    = require('./routes/dateBoardMeetingRoutes');
+const activityLogRoutes         = require('./routes/activityLogRoutes');
 const cors = require('cors');
 const { seedData } = require('./seed');
 
@@ -67,6 +68,7 @@ const mountRoutes = (prefix = '') => {
   app.use(`${prefix}/agendas`, agendaRoutes);
   app.use(`${prefix}/documents`, documentRoutes);
   app.use(`${prefix}/dateboardmeetings`, dateBoardMeetingRoutes);
+  app.use(`${prefix}/logs`, activityLogRoutes);
 };
 
 mountRoutes('/api');

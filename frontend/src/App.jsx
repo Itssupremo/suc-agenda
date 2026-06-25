@@ -12,11 +12,13 @@ import MinutesOfMeeting from './pages/MinutesOfMeeting';
 import SpecialBoardMeeting from './pages/SpecialBoardMeeting';
 import MyAccount from './pages/MyAccount';
 import Analytics from './pages/Analytics';
+import UsersLog from './pages/UsersLog';
 import { getMe } from './services/api';
 
 const PAGE_TITLES = {
   '/admin': 'Dashboard',
   '/admin/users': 'User Management',
+  '/admin/logs': 'Users Log',
   '/admin/analytics': 'Analytics',
   '/admin/regular-board': 'Regular Board Meeting',
   '/admin/minutes': 'Minutes of the Meeting',
@@ -88,10 +90,23 @@ function App() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'linear-gradient(135deg, #0d1b3e 0%, #1e3163 100%)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 20,
+      }}>
+        <img src="/ched-logo.png" alt="CHED" style={{ height: 52, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          border: '3px solid rgba(255,255,255,0.15)',
+          borderTopColor: '#f5b731',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', fontWeight: 500, letterSpacing: '0.5px' }}>
+          Loading e-Agenda…
+        </span>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -116,6 +131,10 @@ function App() {
             <Route
               path="/admin/users"
               element={['superadmin', 'admin'].includes(user.role) ? <UserManagement user={user} /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/admin/logs"
+              element={['superadmin', 'admin'].includes(user.role) ? <UsersLog user={user} /> : <Navigate to="/dashboard" />}
             />
             <Route
               path="/admin/analytics"

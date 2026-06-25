@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { logActivity } = require('../utils/activityLogger');
 
 // GET all users
 // superadmin → all users
@@ -40,6 +41,7 @@ exports.updateSelf = async (req, res) => {
     await user.save();
     const updated = user.toObject();
     delete updated.password;
+    logActivity(req, 'UPDATE_USER_SELF', 'User updated their own profile settings');
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -82,6 +84,7 @@ exports.updateUser = async (req, res) => {
     await user.save();
     const updated = user.toObject();
     delete updated.password;
+    logActivity(req, 'UPDATE_USER', `Updated user account: ${user.username} (Fullname: ${user.fullname}, Role: ${user.role})`);
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -115,6 +118,7 @@ exports.createUser = async (req, res) => {
     });
     const result = user.toObject();
     delete result.password;
+    logActivity(req, 'CREATE_USER', `Created user account: ${user.username} (Fullname: ${user.fullname}, Role: ${user.role})`);
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -139,6 +143,7 @@ exports.deleteUser = async (req, res) => {
     }
 
     await User.findByIdAndDelete(req.params.id);
+    logActivity(req, 'DELETE_USER', `Deleted user account: ${user.username} (Fullname: ${user.fullname}, Role: ${user.role})`);
     res.json({ message: 'User deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

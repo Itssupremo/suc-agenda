@@ -42,6 +42,9 @@ export const deleteUser = (id) => API.delete(`/users/${id}`);
 // Self profile update — available to all roles
 export const updateSelf = (data) => API.put('/users/me', data);
 
+// Activity Logs — superadmin and admin
+export const getActivityLogs = () => API.get('/logs');
+
 // Board Meeting Reminders (dateboardmeetings collection)
 export const getDateBoardMeetings = () => API.get('/dateboardmeetings');
 export const createDateBoardMeeting = (data) => API.post('/dateboardmeetings', data);

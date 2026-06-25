@@ -89,87 +89,76 @@ function MyAccount({ user, onUserUpdate }) {
         <div className="card shadow-sm">
           {/* Card Header */}
           <div
-            className="card-header d-flex justify-content-between align-items-center"
-            style={{ background: 'var(--ched-navy)', color: '#fff' }}
+            className="card-header d-flex justify-content-between align-items-center py-3 px-4"
+            style={{ background: '#1e1e2f', color: '#fff', borderTopLeftRadius: 'var(--r-md)', borderTopRightRadius: 'var(--r-md)', borderBottom: 'none' }}
           >
-            <span className="fw-semibold fs-6">
-              <i className="bi bi-person-circle me-2"></i>My Account
+            <span className="fw-semibold fs-5 d-flex align-items-center">
+              <i className="bi bi-person-circle me-2 fs-4"></i>My Account
             </span>
             {!editing && (
-              <button className="btn btn-sm btn-warning" onClick={() => setEditing(true)}>
-                <i className="bi bi-pencil-square me-1"></i>Edit Profile
+              <button className="btn btn-sm fw-semibold px-3 py-2 d-flex align-items-center" style={{ borderRadius: 6, background: '#fbbf24', border: 'none', color: '#1e1e2f' }} onClick={() => setEditing(true)}>
+                <i className="bi bi-pencil-square me-2"></i>Edit Profile
               </button>
             )}
           </div>
 
           {!editing ? (
             /* ── VIEW MODE ─────────────────────────────────────────────── */
-            <div className="card-body">
-              <div className="d-flex align-items-center mb-4 gap-3">
+            <div className="card-body p-4 p-md-5">
+              <div className="d-flex align-items-center mb-5 gap-4">
                 <div
                   className="rounded-circle d-flex align-items-center justify-content-center"
                   style={{
-                    width: 68, height: 68, flexShrink: 0,
-                    background: 'var(--ched-gold)',
-                    fontSize: '2rem', color: '#fff',
+                    width: 80, height: 80, flexShrink: 0,
+                    background: '#d4af37',
+                    fontSize: '2.5rem', color: '#fff',
                   }}
                 >
                   <i className="bi bi-person-fill"></i>
                 </div>
                 <div>
-                  <h5 className="mb-1 fw-bold">{user?.fullname}</h5>
+                  <h4 className="mb-1 fw-bold text-dark">{user?.fullname}</h4>
                   {user?.role === 'admin' && user?.occCode && (
-                    <div className="small text-muted mb-1">{displayName}</div>
+                    <div className="text-muted mb-2 fs-6">{displayName}</div>
                   )}
-                  <span className={`badge ${roleBadge}`}>{roleLabel}</span>
-                  {user?.sucAbbreviation && (
-                    <span className="badge bg-secondary ms-1">{user.sucAbbreviation}</span>
-                  )}
+                  <div className="d-flex align-items-center mt-2">
+                    <span className={`badge ${roleBadge} px-3 py-2 rounded-pill fs-6`}>{roleLabel}</span>
+                    {user?.sucAbbreviation && (
+                      <span className="badge bg-secondary px-3 py-2 rounded-pill fs-6 ms-2">{user.sucAbbreviation}</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <table className="table table-borderless mb-0">
-                <tbody>
-                  <tr>
-                    <td className="text-muted fw-semibold" style={{ width: 150 }}>
-                      <i className="bi bi-person me-1"></i>Username
-                    </td>
-                    <td><code>{user?.username}</code></td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted fw-semibold">
-                      <i className="bi bi-envelope me-1"></i>Email
-                    </td>
-                    <td>
-                      {user?.email
-                        ? user.email
-                        : <span className="text-muted fst-italic">Not set</span>}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted fw-semibold">
-                      <i className="bi bi-shield me-1"></i>Role
-                    </td>
-                    <td>{roleLabel}</td>
-                  </tr>
-                  {user?.sucAbbreviation && (
-                    <tr>
-                      <td className="text-muted fw-semibold">
-                        <i className="bi bi-building me-1"></i>Institution
-                      </td>
-                      <td>{user.sucAbbreviation}</td>
-                    </tr>
-                  )}
-                  {user?.occCode && (
-                    <tr>
-                      <td className="text-muted fw-semibold">
-                        <i className="bi bi-award me-1"></i>Office
-                      </td>
-                      <td>{user.occCode}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <div className="row g-4 ms-1">
+                <div className="col-sm-3 text-muted fw-semibold d-flex align-items-center">
+                  <i className="bi bi-person me-3 fs-5"></i>Username
+                </div>
+                <div className="col-sm-9 d-flex align-items-center">
+                  <span style={{ color: '#ec4899', fontFamily: 'monospace', fontSize: '0.95rem' }}>{user?.username}</span>
+                </div>
+
+                <div className="col-sm-3 text-muted fw-semibold d-flex align-items-center">
+                  <i className="bi bi-envelope me-3 fs-5"></i>Email
+                </div>
+                <div className="col-sm-9 d-flex align-items-center text-dark">
+                  {user?.email ? user.email : <span className="text-muted fst-italic">Not set</span>}
+                </div>
+
+                <div className="col-sm-3 text-muted fw-semibold d-flex align-items-center">
+                  <i className="bi bi-shield-check me-3 fs-5"></i>Role
+                </div>
+                <div className="col-sm-9 d-flex align-items-center text-dark">
+                  {roleLabel}
+                </div>
+
+                <div className="col-sm-3 text-muted fw-semibold d-flex align-items-center">
+                  <i className="bi bi-building me-3 fs-5"></i>Office
+                </div>
+                <div className="col-sm-9 d-flex align-items-center text-dark">
+                  {user?.role === 'admin' ? user?.occCode : user?.sucAbbreviation || '—'}
+                </div>
+              </div>
             </div>
           ) : (
             /* ── EDIT MODE ─────────────────────────────────────────────── */

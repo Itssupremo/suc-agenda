@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { logActivityDirect } = require('../utils/activityLogger');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -30,6 +31,7 @@ exports.login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = generateToken(user);
+    logActivityDirect(user, 'LOGIN', 'User logged in successfully via standard credentials', req);
     res.json({
       token,
       user: {
@@ -55,6 +57,7 @@ exports.loginByEmail = async (req, res) => {
     if (!user || !user.email) return res.status(401).json({ message: 'No account found with that email address.' });
 
     const token = generateToken(user);
+    logActivityDirect(user, 'LOGIN', 'User logged in successfully via email credentials', req);
     res.json({
       token,
       user: {

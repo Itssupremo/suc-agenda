@@ -1,6 +1,7 @@
 const Agenda = require('../models/Agenda');
 const multer  = require('multer');
 const { uploadToS3, getFromS3, deleteFromS3 } = require('../utils/s3Storage');
+const { logActivity } = require('../utils/activityLogger');
 
 // Store uploads in memory so we can save the buffer to MongoDB
 const upload = multer({
@@ -89,6 +90,12 @@ exports.uploadFiles = async (req, res) => {
     }
 
     await doc.save();
+    const uploadedFiles = [];
+    if (req.files?.oldAgenda?.[0]) uploadedFiles.push('Old Agenda');
+    if (req.files?.newAgenda?.[0]) uploadedFiles.push('New Agenda');
+    if (uploadedFiles.length > 0) {
+      logActivity(req, 'UPLOAD_AGENDA', `Uploaded ${uploadedFiles.join(' and ')} files for ${sucName || 'SUC'} (Quarter ${quarter}, Year ${year})`);
+    }
     res.json(safe(doc));
   } catch (err) {
     res.status(500).json({ message: err.message || 'Server error' });
@@ -111,7 +118,9 @@ exports.resetFiles = async (req, res) => {
       for (const f of [...allOld, ...allNew]) {
         if (f.s3Key) await deleteFromS3(f.s3Key);
       }
+      const savedSucName = doc.sucName;
       await doc.deleteOne();
+      logActivity(req, 'RESET_AGENDA', `Reset agenda files and history for ${savedSucName || 'SUC'} (Quarter ${quarter}, Year ${year})`);
     }
     
     res.json({ message: 'Reset successful' });
@@ -141,7 +150,13 @@ exports.getAgendaStatus = async (req, res) => {
 
     const [agendas, docs] = await Promise.all([
       Agenda.find({ sucId: { $in: sucIds } }).select('sucId year quarter'),
-      Document.find({ sucId: { $in: sucIds }, pageType: 'special', slot: { $in: ['1st', '2nd'] } }).select('sucId year slot'),
+      Document.find({ 
+        sucId: { $in: sucIds }, 
+        $or: [
+          { pageType: 'special', slot: { $in: ['1st', '2nd', '1st-minutes', '2nd-minutes'] } },
+          { pageType: 'minutes', slot: { $in: ['1st', '2nd', '3rd', '4th'] } }
+        ]
+      }).select('sucId year slot pageType'),
     ]);
 
     const result = [
@@ -151,12 +166,20 @@ exports.getAgendaStatus = async (req, res) => {
         quarter: a.quarter,
         type: 'regular',
       })),
-      ...docs.map((d) => ({
-        sucAbbreviation: sucIdMap[d.sucId.toString()],
-        year: d.year,
-        slot: d.slot,
-        type: 'special',
-      })),
+      ...docs.map((d) => {
+        let type;
+        if (d.pageType === 'special') {
+          type = d.slot.endsWith('-minutes') ? 'minutes-special' : 'special';
+        } else if (d.pageType === 'minutes') {
+          type = 'minutes-regular';
+        }
+        return {
+          sucAbbreviation: sucIdMap[d.sucId.toString()],
+          year: d.year,
+          slot: d.slot,
+          type,
+        };
+      }),
     ];
 
     res.json(result);
