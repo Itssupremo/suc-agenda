@@ -44,7 +44,11 @@ function UserDashboard({ user }) {
   const fetchReminders = async () => {
     try {
       const res = await getDateBoardMeetings();
-      setReminders(res.data);
+      let data = res.data;
+      if (['user', 'board_member'].includes(user?.role) && user?.sucAbbreviation) {
+        data = data.filter(r => r.sucAbbreviation === user.sucAbbreviation);
+      }
+      setReminders(data);
     } catch {
       setAlert({ type: 'danger', msg: 'Failed to load reminders' });
     }

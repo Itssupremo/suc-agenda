@@ -35,6 +35,14 @@ const adminOrAbove = (req, res, next) => {
   next();
 };
 
+// Manager or above (superadmin + admin + SUC user)
+const managerOrAbove = (req, res, next) => {
+  if (!['superadmin', 'admin', 'user'].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Access denied: Manager permission required' });
+  }
+  next();
+};
+
 // Legacy alias kept for existing routes
 const adminOnly = adminOrAbove;
 
@@ -48,4 +56,4 @@ const userSectionAccess = (req, res, next) => {
   next();
 };
 
-module.exports = { authenticate, superAdminOnly, adminOrAbove, adminOnly, userSectionAccess };
+module.exports = { authenticate, superAdminOnly, adminOrAbove, managerOrAbove, adminOnly, userSectionAccess };

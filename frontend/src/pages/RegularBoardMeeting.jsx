@@ -125,12 +125,15 @@ function VersionDropdown({ history, onSelect }) {
   );
 }
 // ── Single quarter card ──────────────────────────────────────────────────────
-function QuarterCard({ quarter, agendaDoc, sucId, sucName, year, onRefresh, onViewFile, isUser }) {
+function QuarterCard({ quarter, agendaDoc, sucId, sucName, year, onRefresh, onViewFile, user }) {
   const [proposedFile, setProposedFile] = useState(null);
   const [approvedFile, setApprovedFile] = useState(null);
   const [saving,     setSaving]     = useState(false);
   const [resetting,  setResetting]  = useState(false);
   const [msg,        setMsg]        = useState(null);
+
+  const canUpload = ['superadmin', 'admin', 'user'].includes(user?.role);
+  const canReset = ['superadmin', 'admin'].includes(user?.role);
 
   useEffect(() => {
     setProposedFile(null);
@@ -288,39 +291,43 @@ function QuarterCard({ quarter, agendaDoc, sucId, sucName, year, onRefresh, onVi
           </div>
         )}
 
-        <DropZone
-          label={<>Proposed Agenda (PDF) <em>(Order of Business Meeting)</em></>}
-          file={proposedFile}
-          onFile={setProposedFile}
-          disabled={!sucId || saving || resetting}
-        />
-        <DropZone
-          label={<>Approved Agenda (PDF) <em>(with Action Taken Plan)</em></>}
-          file={approvedFile}
-          onFile={setApprovedFile}
-          disabled={!sucId || saving || resetting}
-        />
+        {canUpload && (
+          <>
+            <DropZone
+              label={<>Proposed Agenda (PDF) <em>(Order of Business Meeting)</em></>}
+              file={proposedFile}
+              onFile={setProposedFile}
+              disabled={!sucId || saving || resetting}
+            />
+            <DropZone
+              label={<>Approved Agenda (PDF) <em>(with Action Taken Plan)</em></>}
+              file={approvedFile}
+              onFile={setApprovedFile}
+              disabled={!sucId || saving || resetting}
+            />
 
-        <div className="d-flex gap-2 mt-2">
-          <button
-            className="btn agenda-btn-update flex-fill"
-            onClick={handleUpdate}
-            disabled={saving || resetting || !sucId}
-          >
-            {saving ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-            Update Files
-          </button>
-          {!isUser && (
-            <button
-              className="btn agenda-btn-reset flex-fill"
-              onClick={handleReset}
-              disabled={saving || resetting || !sucId}
-            >
-              {resetting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-              Reset
-            </button>
-          )}
-        </div>
+            <div className="d-flex gap-2 mt-2">
+              <button
+                className="btn agenda-btn-update flex-fill"
+                onClick={handleUpdate}
+                disabled={saving || resetting || !sucId}
+              >
+                {saving ? <span className="spinner-border spinner-border-sm me-1" /> : null}
+                Update Files
+              </button>
+              {canReset && (
+                <button
+                  className="btn agenda-btn-reset flex-fill"
+                  onClick={handleReset}
+                  disabled={saving || resetting || !sucId}
+                >
+                  {resetting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
+                  Reset
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -335,7 +342,7 @@ function RegularBoardMeeting({ user }) {
   const [agendas,    setAgendas]    = useState([]);
   const [loading,    setLoading]    = useState(false);
   const [pdfModal,   setPdfModal]   = useState({ open: false, url: '', title: '' });
-  const isUser = user?.role === 'user';
+  const isUser = ['user', 'board_member'].includes(user?.role);
 
   const filteredSucs = occFilter ? sucs.filter((s) => s.occCode === occFilter) : sucs;
 
@@ -348,7 +355,7 @@ function RegularBoardMeeting({ user }) {
         const list = res.data;
         setSucs(list);
         // Auto-select the user's own SUC
-        if (user?.role === 'user' && user?.sucAbbreviation) {
+        if (['user', 'board_member'].includes(user?.role) && user?.sucAbbreviation) {
           const match = list.find((s) => s.abbreviation === user.sucAbbreviation);
           if (match) setSelectedSuc(match._id);
         }
@@ -468,7 +475,7 @@ function RegularBoardMeeting({ user }) {
             year={year}
             onRefresh={fetchAgendas}
             onViewFile={openPdf}
-            isUser={isUser}
+            user={user}
           />
         ))}
       </div>

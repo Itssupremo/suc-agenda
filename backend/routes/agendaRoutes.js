@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
-const { authenticate, adminOrAbove } = require('../middleware/auth');
+const { authenticate, adminOrAbove, managerOrAbove } = require('../middleware/auth');
 const {
   uploadMiddleware,
   getAgendas,
@@ -40,9 +40,9 @@ router.get('/', authenticate, getAgendas);
 router.get('/status', authenticate, getAgendaStatus);
 
 // Upload / update files for a quarter (all authenticated users)
-router.post('/:sucId/:quarter', authenticate, uploadMiddleware, uploadFiles);
+router.post('/:sucId/:quarter', authenticate, managerOrAbove, uploadMiddleware, uploadFiles);
 
 // Reset (delete) files for a quarter (all authenticated users)
-router.delete('/:sucId/:quarter', authenticate, resetFiles);
+router.delete('/:sucId/:quarter', authenticate, managerOrAbove, resetFiles);
 
 module.exports = router;

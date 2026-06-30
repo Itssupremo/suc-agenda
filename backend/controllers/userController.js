@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Suc = require('../models/Suc');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('../utils/activityLogger');
 
@@ -12,8 +13,13 @@ exports.getAllUsers = async (req, res) => {
       filter = {
         $or: [
           { _id: req.user._id },
-          { role: 'user', occCode: req.user.occCode },
+          { role: { $in: ['user', 'board_member'] }, occCode: req.user.occCode },
         ],
+      };
+    } else if (req.user.role === 'user') {
+      filter = {
+        role: 'board_member',
+        sucAbbreviation: req.user.sucAbbreviation,
       };
     }
     const users = await User.find(filter).select('-password').sort({ role: 1, fullname: 1 });
@@ -21,6 +27,12 @@ exports.getAllUsers = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+const getOccCodeForSuc = async (sucAbbreviation) => {
+  if (!sucAbbreviation) return '';
+  const sucDoc = await Suc.findOne({ abbreviation: new RegExp(`^${sucAbbreviation.trim()}$`, 'i') });
+  return sucDoc ? sucDoc.occCode : '';
 };
 
 // PUT /api/users/me — self-update (any authenticated user: email, username, password only)
@@ -55,11 +67,16 @@ exports.updateUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // admin: can only manage their own account or 'user' accounts under their own OCC code
+    // admin: can only manage their own account or 'user' / 'board_member' accounts under their own OCC code
     if (req.user.role === 'admin') {
       const isSelf = req.user._id.toString() === req.params.id;
-      const isOwnOccUser = user.role === 'user' && user.occCode === req.user.occCode;
+      const isOwnOccUser = ['user', 'board_member'].includes(user.role) && user.occCode === req.user.occCode;
       if (!isSelf && !isOwnOccUser) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === 'user') {
+      const isOwnSucUser = user.role === 'board_member' && user.sucAbbreviation === req.user.sucAbbreviation;
+      if (!isOwnSucUser) {
         return res.status(403).json({ message: 'Access denied' });
       }
     }
@@ -76,10 +93,32 @@ exports.updateUser = async (req, res) => {
     if (fullname)                 user.fullname = fullname;
     if (email !== undefined)       user.email = email;
     if (password)                  user.password = password;
-    // admin cannot change role or occCode
-    if (role && req.user.role === 'superadmin')           user.role = role;
-    if (occCode !== undefined && req.user.role === 'superadmin') user.occCode = occCode;
-    if (sucAbbreviation !== undefined) user.sucAbbreviation = sucAbbreviation;
+    
+    // admin / superadmin field update and auto OCC assignment
+    if (req.user.role === 'superadmin') {
+      if (role) user.role = role;
+      if (occCode !== undefined) user.occCode = occCode;
+      if (sucAbbreviation !== undefined) {
+        user.sucAbbreviation = sucAbbreviation;
+        if (sucAbbreviation) {
+          const matchedOcc = await getOccCodeForSuc(sucAbbreviation);
+          if (matchedOcc) user.occCode = matchedOcc;
+        }
+      }
+    } else if (req.user.role === 'admin') {
+      if (sucAbbreviation !== undefined) {
+        user.sucAbbreviation = sucAbbreviation;
+        if (sucAbbreviation) {
+          const matchedOcc = await getOccCodeForSuc(sucAbbreviation);
+          if (matchedOcc) {
+            if (matchedOcc !== req.user.occCode) {
+              return res.status(403).json({ message: `Access denied: SUC "${sucAbbreviation}" is not under your OCC` });
+            }
+            user.occCode = matchedOcc;
+          }
+        }
+      }
+    }
 
     await user.save();
     const updated = user.toObject();
@@ -102,19 +141,39 @@ exports.createUser = async (req, res) => {
     if (existing) return res.status(400).json({ message: 'Username already taken' });
 
     // admin: can only create 'user' accounts under their own OCC code
+    // user: can only create 'board_member' accounts under their own SUC
     let effectiveRole = role || 'user';
     let effectiveOcc  = occCode || '';
+    let effectiveSuc  = sucAbbreviation || '';
     if (req.user.role === 'admin') {
       effectiveRole = 'user';
-      effectiveOcc  = req.user.occCode;
+      effectiveSuc  = sucAbbreviation || '';
+      if (effectiveSuc) {
+        const matchedOcc = await getOccCodeForSuc(effectiveSuc);
+        if (matchedOcc !== req.user.occCode) {
+          return res.status(403).json({ message: `Access denied: SUC "${effectiveSuc}" is not under your OCC` });
+        }
+        effectiveOcc = matchedOcc;
+      } else {
+        effectiveOcc = req.user.occCode;
+      }
+    } else if (req.user.role === 'user') {
+      effectiveRole = 'board_member';
+      effectiveSuc  = req.user.sucAbbreviation;
+      effectiveOcc  = await getOccCodeForSuc(effectiveSuc);
+    } else if (req.user.role === 'superadmin') {
+      effectiveSuc  = sucAbbreviation || '';
+      if (effectiveSuc) {
+        effectiveOcc = await getOccCodeForSuc(effectiveSuc);
+      }
     }
-
+ 
     const user = await User.create({
       fullname, username, password,
       email: email || '',
       role: effectiveRole,
       occCode: effectiveOcc,
-      sucAbbreviation: sucAbbreviation || '',
+      sucAbbreviation: effectiveSuc,
     });
     const result = user.toObject();
     delete result.password;
@@ -138,6 +197,11 @@ exports.deleteUser = async (req, res) => {
     if (req.user.role === 'admin') {
       const isOwnOccUser = user.role === 'user' && user.occCode === req.user.occCode;
       if (!isOwnOccUser) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === 'user') {
+      const isOwnSucUser = user.role === 'board_member' && user.sucAbbreviation === req.user.sucAbbreviation;
+      if (!isOwnSucUser) {
         return res.status(403).json({ message: 'Access denied' });
       }
     }

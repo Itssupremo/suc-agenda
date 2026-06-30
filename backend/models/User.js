@@ -6,9 +6,9 @@ const userSchema = new mongoose.Schema({
   password:         { type: String, required: true },
   email:            { type: String, trim: true, default: '' },
   fullname:         { type: String, required: true, trim: true },
-  role:             { type: String, enum: ['superadmin', 'admin', 'user'], default: 'user' },
+  role:             { type: String, enum: ['superadmin', 'admin', 'user', 'board_member'], default: 'user' },
   occCode:          { type: String, trim: true, default: '' },  // for admin (commissioner)
-  sucAbbreviation:  { type: String, trim: true, default: '' },  // for user (SUC)
+  sucAbbreviation:  { type: String, trim: true, default: '' },  // for user (SUC) / board_member
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

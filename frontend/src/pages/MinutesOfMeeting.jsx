@@ -115,11 +115,14 @@ function DropZone({ file, onFile, disabled = false }) {
 }
 
 // ── Single quarter card ───────────────────────────────────────────────────────
-function QuarterCard({ quarter, doc, sucId, sucName, year, onRefresh, onViewFile, isUser }) {
+function QuarterCard({ quarter, doc, sucId, sucName, year, onRefresh, onViewFile, user }) {
   const [file,      setFile]      = useState(null);
   const [saving,    setSaving]    = useState(false);
   const [resetting, setResetting] = useState(false);
   const [msg,       setMsg]       = useState(null);
+
+  const canUpload = ['superadmin', 'admin', 'user'].includes(user?.role);
+  const canReset = ['superadmin', 'admin'].includes(user?.role);
 
   useEffect(() => { setFile(null); setMsg(null); }, [sucId, year]);
 
@@ -217,20 +220,24 @@ function QuarterCard({ quarter, doc, sucId, sucName, year, onRefresh, onViewFile
           </div>
         )}
 
-        <DropZone file={file} onFile={setFile} disabled={!sucId || saving || resetting} />
+        {canUpload && (
+          <>
+            <DropZone file={file} onFile={setFile} disabled={!sucId || saving || resetting} />
 
-        <div className="d-flex gap-2 mt-2">
-          <button className="btn agenda-btn-update flex-fill" onClick={handleUpdate} disabled={saving || resetting || !sucId}>
-            {saving ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-            Update File
-          </button>
-          {!isUser && (
-            <button className="btn agenda-btn-reset flex-fill" onClick={handleReset} disabled={saving || resetting || !sucId}>
-              {resetting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-              Reset
-            </button>
-          )}
-        </div>
+            <div className="d-flex gap-2 mt-2">
+              <button className="btn agenda-btn-update flex-fill" onClick={handleUpdate} disabled={saving || resetting || !sucId}>
+                {saving ? <span className="spinner-border spinner-border-sm me-1" /> : null}
+                Update File
+              </button>
+              {canReset && (
+                <button className="btn agenda-btn-reset flex-fill" onClick={handleReset} disabled={saving || resetting || !sucId}>
+                  {resetting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
+                  Reset
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -253,7 +260,7 @@ function MinutesOfMeeting({ user }) {
   const [docs,        setDocs]        = useState([]);
   const [loading,     setLoading]     = useState(false);
   const [pdfModal,    setPdfModal]    = useState({ open: false, url: '', title: '' });
-  const isUser = user?.role === 'user';
+  const isUser = ['user', 'board_member'].includes(user?.role);
 
   const filteredSucs = occFilter ? sucs.filter((s) => s.occCode === occFilter) : sucs;
 
@@ -265,7 +272,7 @@ function MinutesOfMeeting({ user }) {
       .then((res) => {
         const list = res.data;
         setSucs(list);
-        if (user?.role === 'user' && user?.sucAbbreviation) {
+        if (['user', 'board_member'].includes(user?.role) && user?.sucAbbreviation) {
           const match = list.find((s) => s.abbreviation === user.sucAbbreviation);
           if (match) setSelectedSuc(match._id);
         }
@@ -381,6 +388,7 @@ function MinutesOfMeeting({ user }) {
             year={year}
             onRefresh={fetchDocs}
             onViewFile={openPdf}
+            user={user}
           />
         ))}
       </div>

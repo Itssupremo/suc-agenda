@@ -385,9 +385,17 @@ function Analytics({ user }) {
         {/* Regular Detailed Cards Side-by-Side */}
         <div className="row g-4">
           <div className="col-lg-6">
+            <h5 className="mb-3" style={{ fontWeight: 700, color: 'var(--navy)', fontSize: '0.95rem' }}>
+              <i className="bi bi-list-check me-2" style={{ color: 'var(--gold)' }} />
+              Detailed SUC Upload Status (Regular Agendas)
+            </h5>
             {renderDetailedCard('regular', 'quarter', selectedQuarter, QUARTER_COLORS[quarterIndex])}
           </div>
           <div className="col-lg-6">
+            <h5 className="mb-3" style={{ fontWeight: 700, color: 'var(--navy)', fontSize: '0.95rem' }}>
+              <i className="bi bi-list-check me-2" style={{ color: 'var(--gold)' }} />
+              Detailed SUC Upload Status (Regular Minutes)
+            </h5>
             {renderDetailedCard('minutes-regular', 'slot', selectedQuarter, QUARTER_COLORS[quarterIndex])}
           </div>
         </div>

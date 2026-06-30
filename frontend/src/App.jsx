@@ -12,6 +12,8 @@ import MinutesOfMeeting from './pages/MinutesOfMeeting';
 import SpecialBoardMeeting from './pages/SpecialBoardMeeting';
 import MyAccount from './pages/MyAccount';
 import Analytics from './pages/Analytics';
+import SucAnalytics from './pages/SucAnalytics';
+import SucUserManagement from './pages/SucUserManagement';
 import UsersLog from './pages/UsersLog';
 import { getMe } from './services/api';
 
@@ -24,6 +26,8 @@ const PAGE_TITLES = {
   '/admin/minutes': 'Minutes of the Meeting',
   '/admin/special-board': 'Special Board Meeting',
   '/dashboard': 'Dashboard',
+  '/dashboard/analytics': 'My Analytics',
+  '/dashboard/users': 'Board Members',
   '/my-account': 'My Account',
 };
 
@@ -155,6 +159,8 @@ function App() {
             />
             {/* SUC user */}
             <Route path="/dashboard" element={<UserDashboard user={user} />} />
+            <Route path="/dashboard/analytics" element={<SucAnalytics user={user} />} />
+            <Route path="/dashboard/users" element={<SucUserManagement user={user} />} />
             <Route path="*" element={
               <Navigate to={
                 user.role === 'superadmin' ? '/admin' :

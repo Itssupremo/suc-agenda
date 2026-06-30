@@ -66,19 +66,53 @@ const userNav = [
       { label: 'Special Board Meeting', icon: 'bi-calendar-check',  path: '/admin/special-board' },
     ],
   },
+  {
+    section: 'ANALYTICS',
+    items: [{ label: 'My Analytics', icon: 'bi-bar-chart-line', path: '/dashboard/analytics' }],
+  },
+  {
+    section: 'MANAGEMENT',
+    items: [{ label: 'Board Members', icon: 'bi-people', path: '/dashboard/users' }],
+  },
 ];
 
-const NAV_BY_ROLE = { superadmin: superAdminNav, admin: adminNav, user: userNav };
+const boardMemberNav = [
+  {
+    section: 'OVERVIEW',
+    items: [{ label: 'Dashboard', icon: 'bi-house-door', path: '/dashboard' }],
+  },
+  {
+    section: 'e-AGENDA',
+    items: [
+      { label: 'Regular Board Meeting', icon: 'bi-calendar-event',  path: '/admin/regular-board' },
+      { label: 'Minutes of the Meeting', icon: 'bi-file-text',       path: '/admin/minutes' },
+      { label: 'Special Board Meeting', icon: 'bi-calendar-check',  path: '/admin/special-board' },
+    ],
+  },
+  {
+    section: 'ANALYTICS',
+    items: [{ label: 'My Analytics', icon: 'bi-bar-chart-line', path: '/dashboard/analytics' }],
+  },
+];
+
+const NAV_BY_ROLE = { superadmin: superAdminNav, admin: adminNav, user: userNav, board_member: boardMemberNav };
 
 const ROLE_BADGE = {
-  superadmin: { label: 'Super Admin', color: '#e74c3c' },
-  admin:      { label: 'Commissioner', color: '#2980b9' },
-  user:       { label: 'SUC',          color: '#27ae60' },
+  superadmin:   { label: 'Super Admin', color: '#e74c3c' },
+  admin:        { label: 'Commissioner', color: '#2980b9' },
+  user:         { label: 'SUC',          color: '#27ae60' },
+  board_member: { label: 'Board Member', color: '#8e44ad' },
 };
 
 function getRoleBadge(user) {
   if (user?.role === 'admin' && user?.occCode === 'OCSCA') {
     return { label: 'Chairperson', color: '#8e44ad' };
+  }
+  if (user?.role === 'board_member') {
+    return {
+      label: user.sucAbbreviation ? `${user.sucAbbreviation} — Board Member` : 'Board Member',
+      color: '#8e44ad'
+    };
   }
   return ROLE_BADGE[user?.role] || ROLE_BADGE.user;
 }

@@ -100,8 +100,25 @@ const connectDB = async () => {
       await seedData();
       console.log('Auto-seeding completed successfully.');
     }
+
+    // Migration: populate occCode for existing board_members
+    const Suc = require('./models/Suc');
+    const boardMembersWithNoOcc = await User.find({
+      role: 'board_member',
+      $or: [{ occCode: '' }, { occCode: { $exists: false } }]
+    });
+    for (const bm of boardMembersWithNoOcc) {
+      if (bm.sucAbbreviation) {
+        const sucDoc = await Suc.findOne({ abbreviation: bm.sucAbbreviation });
+        if (sucDoc) {
+          bm.occCode = sucDoc.occCode;
+          await bm.save();
+          console.log(`Migration: Updated board member "${bm.username}" occCode to "${sucDoc.occCode}"`);
+        }
+      }
+    }
   } catch (err) {
-    console.error('Error during auto-seeding check:', err.message);
+    console.error('Error during database initialization/migration:', err.message);
   }
 };
 

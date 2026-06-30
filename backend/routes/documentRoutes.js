@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, managerOrAbove } = require('../middleware/auth');
 const {
   uploadMiddleware, getDocs, uploadFile, resetFile, serveFile,
 } = require('../controllers/documentController');
@@ -26,7 +26,7 @@ const authenticateOrQuery = async (req, res, next) => {
 
 router.get('/file/:docId',              authenticateOrQuery, serveFile);
 router.get('/',                         authenticate, getDocs);
-router.post('/:sucId/:pageType/:slot',  authenticate, uploadMiddleware, uploadFile);
-router.delete('/:sucId/:pageType/:slot', authenticate, resetFile);
+router.post('/:sucId/:pageType/:slot',  authenticate, managerOrAbove, uploadMiddleware, uploadFile);
+router.delete('/:sucId/:pageType/:slot', authenticate, managerOrAbove, resetFile);
 
 module.exports = router;

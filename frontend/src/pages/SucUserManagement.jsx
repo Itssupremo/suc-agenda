@@ -2,54 +2,27 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getUsers, createUser, updateUser, deleteUser } from '../services/api';
 
-const OCC_OPTIONS = [
-  { code: '', label: 'None' },
-  { code: 'OCSCA', label: 'OCSCA — Chairperson Shirley C. Agrupis' },
-  { code: 'OCDRA', label: 'OCDRA — Commissioner Desiderio R. Apag III' },
-  { code: 'OCRPA', label: 'OCRPA — Commissioner Ricmar P. Aquino' },
-  { code: 'OCMQM', label: 'OCMQM — Commissioner Myrna Q. Mallari' },
-  { code: 'OCMAO', label: 'OCMAO — Commissioner Michelle Aguilar-Ong' },
-];
-
 const ROLE_STYLES = {
-  superadmin:  { bg: 'rgba(220,38,38,0.09)',   color: '#dc2626', border: 'rgba(220,38,38,0.2)',   icon: 'bi-shield-lock-fill',  label: 'Super Admin' },
-  admin:       { bg: 'rgba(13,27,62,0.08)',     color: '#0d1b3e', border: 'rgba(13,27,62,0.2)',    icon: 'bi-shield-check',      label: 'Commissioner' },
-  chairperson: { bg: 'rgba(124,58,237,0.09)',   color: '#7c3aed', border: 'rgba(124,58,237,0.2)',  icon: 'bi-shield-check',      label: 'Chairperson' },
-  user:        { bg: 'rgba(5,150,105,0.09)',    color: '#059669', border: 'rgba(5,150,105,0.2)',   icon: 'bi-person',            label: 'SUC User' },
-  board_member:{ bg: 'rgba(124,58,237,0.09)',   color: '#7c3aed', border: 'rgba(124,58,237,0.2)',  icon: 'bi-people-fill',       label: 'Board Member' },
+  board_member: { bg: 'rgba(124,58,237,0.09)', color: '#7c3aed', border: 'rgba(124,58,237,0.2)', icon: 'bi-people-fill', label: 'Board Member' }
 };
 
-function getRoleMeta(u) {
-  if (u.role === 'admin' && u.occCode === 'OCSCA') {
-    return { ...ROLE_STYLES.admin, label: 'Chairperson', bg: 'rgba(124,58,237,0.09)', color: '#7c3aed', border: 'rgba(124,58,237,0.2)', icon: 'bi-shield-check' };
-  }
-  if (u.role === 'board_member') {
-    return {
-      ...ROLE_STYLES.board_member,
-      label: u.sucAbbreviation ? `${u.sucAbbreviation} — Board Member` : 'Board Member'
-    };
-  }
-  return ROLE_STYLES[u.role] || ROLE_STYLES.user;
-}
-
-function UserManagement({ user: currentUser }) {
-  const isSuperAdmin = currentUser?.role === 'superadmin';
+function SucUserManagement({ user: currentUser }) {
   const [users, setUsers] = useState([]);
   const [alert, setAlert] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
-    fullname: '', email: '', username: '', password: '',
-    role: 'user', occCode: '', sucAbbreviation: ''
+    fullname: '', email: '', username: '', password: ''
   });
   const [search, setSearch] = useState('');
 
   const fetchUsers = async () => {
     try {
       const res = await getUsers();
-      setUsers(res.data);
+      // Only keep board_members (extra check, backend also filters this)
+      setUsers(res.data.filter(u => u.role === 'board_member'));
     } catch {
-      showAlert('danger', 'Failed to load users');
+      showAlert('danger', 'Failed to load board members');
     }
   };
 
@@ -62,7 +35,7 @@ function UserManagement({ user: currentUser }) {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ fullname: '', email: '', username: '', password: '', role: 'user', occCode: '', sucAbbreviation: '' });
+    setForm({ fullname: '', email: '', username: '', password: '' });
     setShowModal(true);
   };
 
@@ -73,9 +46,6 @@ function UserManagement({ user: currentUser }) {
       email: user.email || '',
       username: user.username,
       password: '',
-      role: user.role,
-      occCode: user.occCode || '',
-      sucAbbreviation: user.sucAbbreviation || '',
     });
     setShowModal(true);
   };
@@ -88,20 +58,19 @@ function UserManagement({ user: currentUser }) {
           fullname: form.fullname,
           email: form.email,
           username: form.username,
-          role: form.role,
-          occCode: form.role === 'admin' ? form.occCode : '',
-          sucAbbreviation: ['user', 'board_member'].includes(form.role) ? form.sucAbbreviation : '',
+          role: 'board_member',
+          sucAbbreviation: currentUser.sucAbbreviation,
         };
         if (form.password) data.password = form.password;
         await updateUser(editing._id, data);
-        showAlert('success', 'User updated successfully');
+        showAlert('success', 'Board Member updated successfully');
       } else {
         await createUser({
           ...form,
-          occCode: form.role === 'admin' ? form.occCode : '',
-          sucAbbreviation: ['user', 'board_member'].includes(form.role) ? form.sucAbbreviation : '',
+          role: 'board_member',
+          sucAbbreviation: currentUser.sucAbbreviation,
         });
-        showAlert('success', 'User created successfully');
+        showAlert('success', 'Board Member created successfully');
       }
       setShowModal(false);
       fetchUsers();
@@ -111,10 +80,10 @@ function UserManagement({ user: currentUser }) {
   };
 
   const handleDelete = async (id, username) => {
-    if (!window.confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete board member "${username}"? This cannot be undone.`)) return;
     try {
       await deleteUser(id);
-      showAlert('success', 'User deleted');
+      showAlert('success', 'Board Member deleted');
       fetchUsers();
     } catch (err) {
       showAlert('danger', err.response?.data?.message || 'Delete failed');
@@ -124,17 +93,8 @@ function UserManagement({ user: currentUser }) {
   const filtered = users.filter((u) => {
     const q = search.toLowerCase();
     return !q || u.fullname.toLowerCase().includes(q) || u.username.toLowerCase().includes(q) ||
-      (u.email || '').toLowerCase().includes(q) || (u.occCode || '').toLowerCase().includes(q) ||
-      (u.sucAbbreviation || '').toLowerCase().includes(q);
+      (u.email || '').toLowerCase().includes(q);
   });
-
-  // Role counts for stat row
-  const roleCounts = {
-    superadmin: users.filter(u => u.role === 'superadmin').length,
-    admin: users.filter(u => u.role === 'admin').length,
-    user: users.filter(u => u.role === 'user').length,
-    board_member: users.filter(u => u.role === 'board_member').length,
-  };
 
   return (
     <div>
@@ -143,13 +103,13 @@ function UserManagement({ user: currentUser }) {
         <div>
           <h2 className="page-section-title mb-0">
             <i className="bi bi-people me-2" style={{ color: 'var(--gold)' }} />
-            User Management
+            Board Member Management
           </h2>
-          <p className="page-section-sub mb-0">{users.length} user{users.length !== 1 ? 's' : ''} registered in the system</p>
+          <p className="page-section-sub mb-0">{users.length} board member{users.length !== 1 ? 's' : ''} registered for {currentUser?.sucAbbreviation || 'SUC'}</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate} id="add-user-btn">
           <i className="bi bi-person-plus" />
-          Add User
+          Add Board Member
         </button>
       </div>
 
@@ -159,29 +119,6 @@ function UserManagement({ user: currentUser }) {
           {alert.msg}
         </div>
       )}
-
-      {/* Role stat pills */}
-      <div className="d-flex flex-wrap gap-2 mb-4">
-        {[
-          { role: 'superadmin', label: 'Super Admins', icon: 'bi-shield-lock-fill' },
-          { role: 'admin',      label: 'Commissioners',  icon: 'bi-shield-check' },
-          { role: 'user',       label: 'SUC Users',      icon: 'bi-person' },
-          { role: 'board_member',label: 'Board Members',  icon: 'bi-people-fill' },
-        ].map(({ role, label, icon }) => {
-          const s = ROLE_STYLES[role];
-          return (
-            <div key={role} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: s.bg, border: `1px solid ${s.border}`,
-              borderRadius: 'var(--r-pill)', padding: '7px 16px',
-            }}>
-              <i className={`bi ${icon}`} style={{ color: s.color, fontSize: '0.9rem' }} />
-              <span style={{ fontWeight: 700, color: s.color, fontSize: '0.85rem' }}>{roleCounts[role]}</span>
-              <span style={{ color: s.color, fontSize: '0.8rem', opacity: 0.8 }}>{label}</span>
-            </div>
-          );
-        })}
-      </div>
 
       {/* Table Card */}
       <div className="card">
@@ -196,7 +133,7 @@ function UserManagement({ user: currentUser }) {
                 type="text"
                 className="form-control"
                 style={{ borderRadius: '0 var(--r-md) var(--r-md) 0', borderLeft: 'none' }}
-                placeholder="Search name, username, email, OCC…"
+                placeholder="Search name, username, email…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 id="search-users"
@@ -213,7 +150,7 @@ function UserManagement({ user: currentUser }) {
                   <th>Email</th>
                   <th>Username</th>
                   <th>Role</th>
-                  <th>OCC / SUC</th>
+                  <th>SUC</th>
                   <th>Joined</th>
                   <th style={{ width: 100 }}>Actions</th>
                 </tr>
@@ -224,13 +161,13 @@ function UserManagement({ user: currentUser }) {
                     <td colSpan={8}>
                       <div className="empty-state">
                         <i className="bi bi-person-x empty-state-icon" />
-                        <span className="empty-state-text">No users found</span>
+                        <span className="empty-state-text">No board members found</span>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   filtered.map((u, idx) => {
-                    const rm = getRoleMeta(u);
+                    const rm = ROLE_STYLES.board_member;
                     return (
                       <tr key={u._id}>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{idx + 1}</td>
@@ -258,11 +195,11 @@ function UserManagement({ user: currentUser }) {
                             padding: '4px 11px', borderRadius: 'var(--r-pill)',
                             fontSize: '0.73rem', fontWeight: 700,
                           }}>
-                            {rm.label}
+                            {u.sucAbbreviation ? `${u.sucAbbreviation} — Board Member` : 'Board Member'}
                           </span>
                         </td>
                         <td style={{ fontSize: '0.83rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          {['user', 'board_member'].includes(u.role) ? (u.sucAbbreviation || '—') : u.role === 'admin' ? (u.occCode || '—') : '—'}
+                          {u.sucAbbreviation || '—'}
                         </td>
                         <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                           {new Date(u.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -287,7 +224,7 @@ function UserManagement({ user: currentUser }) {
         </div>
       </div>
 
-      {/* User Modal — rendered via portal so it's never clipped by parent overflow */}
+      {/* User Modal */}
       {showModal && createPortal(
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(10,20,50,0.55)', backdropFilter: 'blur(3px)', zIndex: 1055 }} id="user-modal">
           <div className="modal-dialog modal-dialog-centered">
@@ -295,7 +232,7 @@ function UserManagement({ user: currentUser }) {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className={`bi ${editing ? 'bi-pencil-square' : 'bi-person-plus-fill'} me-2`} />
-                  {editing ? 'Edit User' : 'Create New User'}
+                  {editing ? 'Edit Board Member' : 'Create Board Member'}
                 </h5>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)} />
               </div>
@@ -329,37 +266,6 @@ function UserManagement({ user: currentUser }) {
                       minLength={4}
                       placeholder={editing ? '••••••••' : 'Min. 4 characters'} />
                   </div>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Role</label>
-                      <select className="form-select" value={form.role}
-                        onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                        {isSuperAdmin && <option value="superadmin">Super Admin</option>}
-                        {isSuperAdmin && <option value="admin">Admin (Commissioner)</option>}
-                        <option value="user">User (SUC)</option>
-                        <option value="board_member">Board Member</option>
-                      </select>
-                    </div>
-                    {form.role === 'admin' && (
-                      <div className="col-md-6">
-                        <label className="form-label">OCC Code</label>
-                        <select className="form-select" value={form.occCode}
-                          onChange={(e) => setForm({ ...form, occCode: e.target.value })}>
-                          {OCC_OPTIONS.map((o) => (
-                            <option key={o.code} value={o.code}>{o.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {['user', 'board_member'].includes(form.role) && (
-                      <div className="col-md-6">
-                        <label className="form-label">SUC Abbreviation</label>
-                        <input type="text" className="form-control" value={form.sucAbbreviation}
-                          onChange={(e) => setForm({ ...form, sucAbbreviation: e.target.value })}
-                          placeholder="e.g. CLSU" />
-                      </div>
-                    )}
-                  </div>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
@@ -380,4 +286,4 @@ function UserManagement({ user: currentUser }) {
   );
 }
 
-export default UserManagement;
+export default SucUserManagement;
